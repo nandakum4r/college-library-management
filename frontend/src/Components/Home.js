@@ -77,30 +77,27 @@ export default function Home() {
       `}</style>
 
       {/* Page Content */}
-      <div className="home-container">
+       <div className="home-container">
         <header className="header">📚 Library Management System</header>
-
         <h1>Welcome to the Library</h1>
         <p>Please select your role to continue:</p>
 
         <div className="users">
-          <a href="/login" className="user-card">
+          <a href="/login" className="user-card" onClick={() => sessionStorage.setItem("role", "admin")}>
             <FontAwesomeIcon icon={faUserShield} className="icon" />
             <span>Admin</span>
           </a>
-          <a href="/login" className="user-card">
+          <a href="/login" className="user-card" onClick={() => sessionStorage.setItem("role", "librarian")}>
             <FontAwesomeIcon icon={faUserTie} className="icon" />
             <span>Librarian</span>
           </a>
-          <a href="/login" className="user-card">
+          <a href="/login" className="user-card" onClick={() => sessionStorage.setItem("role", "student")}>
             <FontAwesomeIcon icon={faUserGraduate} className="icon" />
             <span>Student</span>
           </a>
         </div>
 
-        <footer className="footer">
-          &copy; 2025 Library Management System | All Rights Reserved
-        </footer>
+        <footer className="footer">&copy; 2025 Library Management System | All Rights Reserved</footer>
       </div>
     </div>
   );

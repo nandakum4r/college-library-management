@@ -1,14 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert(`Login with Email: ${email} | Password: ${password}`);
-  };
+  // Fetch role from sessionStorage on mount
+  useEffect(() => {
+    const storedRole = sessionStorage.getItem("role");
+    if (storedRole) setRole(storedRole);
+  }, []);
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch("http://localhost:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, role }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // ✅ Save login session
+      sessionStorage.setItem("isLoggedIn", "true");
+      sessionStorage.setItem("email", email);
+      sessionStorage.setItem("role", role);
+
+      alert(`Login successful as ${role}!`);
+      window.location.href = "/home";
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Login failed");
+  }
+};
 
   return (
     <div className="auth-container">
@@ -22,13 +52,11 @@ export default function Login() {
           background: #f0f2f5;
           font-family: "Segoe UI", sans-serif;
         }
-
         .auth-container h2 {
           margin-bottom: 20px;
           color: #2e3b4e;
           font-size: 28px;
         }
-
         .auth-container form {
           display: flex;
           flex-direction: column;
@@ -38,7 +66,6 @@ export default function Login() {
           box-shadow: 0px 6px 12px rgba(0,0,0,0.1);
           width: 320px;
         }
-
         .auth-container input {
           margin-bottom: 15px;
           padding: 12px;
@@ -46,13 +73,11 @@ export default function Login() {
           border-radius: 6px;
           font-size: 14px;
         }
-
         .auth-container input:focus {
           outline: none;
           border-color: #2e3b4e;
           box-shadow: 0 0 4px rgba(46, 59, 78, 0.4);
         }
-
         .auth-container button {
           padding: 12px;
           background-color: #2e3b4e;
@@ -63,32 +88,28 @@ export default function Login() {
           cursor: pointer;
           transition: 0.3s;
         }
-
         .auth-container button:hover {
           background-color: #1f2a38;
         }
-
         .auth-container p {
           margin-top: 15px;
           font-size: 14px;
           color: #555;
         }
-
         .auth-container a {
           color: #2e3b4e;
           font-weight: bold;
           text-decoration: none;
         }
-
         .auth-container a:hover {
           text-decoration: underline;
         }
       `}</style>
 
-      
-
       <form onSubmit={handleSubmit}>
-        <h2 style={{ textAlign: "center" }}>Login</h2>
+        <h2 style={{ textAlign: "center" }}>
+          Login as {role.charAt(0).toUpperCase() + role.slice(1)}
+        </h2>
 
         <input
           type="email"
@@ -106,8 +127,12 @@ export default function Login() {
         />
         <button type="submit">Login</button>
       </form>
+
       <p>
-        Don’t have an account? <Link to="/signup">Sign Up</Link>
+        Don’t have an account?{" "}
+        <Link to="/signup" onClick={() => sessionStorage.setItem("role", role)}>
+          Sign Up
+        </Link>
       </p>
     </div>
   );

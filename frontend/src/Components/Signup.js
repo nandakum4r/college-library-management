@@ -1,15 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student");
 
-  const handleSignup = (e) => {
-    e.preventDefault();
-    alert(`Signup with Name: ${name}, Email: ${email}, Password: ${password}`);
-  };
+  useEffect(() => {
+    const storedRole = sessionStorage.getItem("role");
+    if (storedRole) setRole(storedRole);
+  }, []);
+
+ const handleSignup = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch("http://localhost:5000/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    console.log(data);
+    alert(`Signup successful as ${role}!`);
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Signup failed");
+  }
+};
 
   return (
     <div className="auth-container">
@@ -87,7 +107,7 @@ export default function Signup() {
       `}</style>
 
       <form onSubmit={handleSignup}>
-        <h2 style={{ textAlign: "center" }}>Sign Up</h2>
+        <h2 style={{ textAlign: "center" }}>Sign Up as {role.charAt(0).toUpperCase() + role.slice(1)}</h2>
         <input
           type="text"
           placeholder="Enter Name"
@@ -111,8 +131,12 @@ export default function Signup() {
         />
         <button type="submit">Sign Up</button>
       </form>
+
       <p>
-        Already have an account? <Link to="/login">Login</Link>
+        Already have an account?{" "}
+        <Link to="/login" onClick={() => sessionStorage.setItem("role", role)}>
+          Login
+        </Link>
       </p>
     </div>
   );
