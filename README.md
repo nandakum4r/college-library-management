@@ -117,7 +117,7 @@ npm start
 
 ## Project Maintainers & Collaborators
 
-| [Nanda Kumar](https://github.com/nandakum4r)              | [Laila R](https://github.com/lailar2004)              | [Jayaprakash](https://github.com/Jayaprakash-18)              | [Suresh Appu](https://github.com/Sureshappu152)              | [Shanmugharini](https://github.com/Shanmugharini)              | [VKMir](https://github.com/VKMir)              |
+| [Nanda Kumar](https://github.com/nandakum4r)              | [Laila R](https://github.com/lailar2004)              | [Jayaprakash](https://github.com/Jayaprakash-18)              | [Suresh Appu](https://github.com/Sureshappu152)              | [Shanmugharini](https://github.com/Shanmugharini)              | [VKMir](https://github.com/VKMir)              | [Sreenithi](https://github.com/sreenithi-developer)              |
 | -------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
 | ![Nandakumar](https://github.com/nandakum4r.png?size=40) | ![Laila R](https://github.com/lailar2004.png?size=40) | ![Jayaprakash](https://github.com/Jayaprakash-18.png?size=40) | ![Suresh Appu](https://github.com/Sureshappu152.png?size=40) | ![Shanmugharini](https://github.com/Shanmugharini.png?size=40) | ![VKMir](https://github.com/VKMir.png?size=40) |
 
