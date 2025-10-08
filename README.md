@@ -132,5 +132,3 @@ npm start
 This project is **for educational purposes only**. You may use it internally for learning and assignments.
 
 ---
-
-**Author:** Nandakumar
