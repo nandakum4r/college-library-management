@@ -1,5 +1,3 @@
-# college-library-management
-
 # Multi-Service PERN Stack Project
 
 ## Project Overview
