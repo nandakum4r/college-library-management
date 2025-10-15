@@ -1,13 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../Components/Sidebar";
 import { useNavigate } from "react-router-dom";
 
 const ManageLibrarians = () => {
   const navigate = useNavigate();
 
-  // Navigate to Edit Librarian page
+  // ✅ State to store fetched librarians
+  const [librarianData, setLibrarianData] = useState([]);
+
+  // ✅ Fetch data from backend
+  useEffect(() => {
+    const fetchLibrarians = async () => {
+      try {
+        const res = await fetch("http://localhost:5001/librarians");
+        if (!res.ok) throw new Error("Failed to fetch librarians");
+        const data = await res.json();
+        setLibrarianData(data);
+      } catch (err) {
+        console.error("Error fetching librarians:", err);
+      }
+    };
+
+    fetchLibrarians();
+  }, []);
+
+  // ✅ Navigate to EditLibrarian page with id
   const handleEdit = (id) => {
-    navigate("/EditLibrarian"); // dynamic route with librarian id
+    navigate(`/edit-librarian/${id}`);
+  };
+
+  // ✅ Delete librarian with confirmation
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this librarian record?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/librarians/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("✅ Librarian deleted successfully!");
+        setLibrarianData((prev) => prev.filter((l) => l.id !== id));
+      } else {
+        alert("⚠️ " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Server error.");
+    }
   };
 
   return (
@@ -54,7 +99,7 @@ const ManageLibrarians = () => {
               </div>
               <button
                 style={{ ...styles.btn, ...styles.btnAdd }}
-                onClick={() => navigate("/AddLibrarian")}
+                onClick={() => navigate("/add-librarian")}
               >
                 <i className="fas fa-plus"></i> Add Librarian
               </button>
@@ -72,25 +117,36 @@ const ManageLibrarians = () => {
                 </tr>
               </thead>
               <tbody>
-                {librarianData.map((librarian) => (
-                  <tr key={librarian.id} style={styles.tr}>
-                    <td style={styles.td}>{librarian.id}</td>
-                    <td style={styles.td}>{librarian.name}</td>
-                    <td style={styles.td}>{librarian.email}</td>
-                    <td style={styles.td}>{librarian.phone}</td>
-                    <td style={{ ...styles.td, ...styles.actionsBtn }}>
-                      <button
-                        style={{ ...styles.iconBtn, color: "#2563eb" }}
-                        onClick={() => handleEdit(librarian.id)}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button style={{ ...styles.iconBtn, color: "#dc2626" }}>
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
+                {librarianData.length > 0 ? (
+                  librarianData.map((librarian) => (
+                    <tr key={librarian.id} style={styles.tr}>
+                      <td style={styles.td}>{librarian.id}</td>
+                      <td style={styles.td}>{librarian.name}</td>
+                      <td style={styles.td}>{librarian.email_id}</td>
+                      <td style={styles.td}>{librarian.phone_no}</td>
+                      <td style={{ ...styles.td, ...styles.actionsBtn }}>
+                        <button
+                          style={{ ...styles.iconBtn, color: "#2563eb" }}
+                          onClick={() => handleEdit(librarian.id)}
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button
+                          style={{ ...styles.iconBtn, color: "#dc2626" }}
+                          onClick={() => handleDelete(librarian.id)}
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" style={styles.td}>
+                      No librarian records found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -99,13 +155,6 @@ const ManageLibrarians = () => {
     </>
   );
 };
-
-// ✅ Dummy data (replace with database/API data)
-const librarianData = [
-  { id: "L001", name: "Anita Sharma", email: "anita@example.com", phone: "9876543210" },
-  { id: "L002", name: "Ramesh Kumar", email: "ramesh@example.com", phone: "9876543211" },
-  { id: "L003", name: "Priya Singh", email: "priya@example.com", phone: "9876543212" },
-];
 
 // ✅ Reuse styles from ManageStudents
 const styles = {

@@ -1,7 +1,48 @@
-import React from "react";
-import Sidebar from "../Components/Sidebar"; // ✅ using your existing Sidebar
+import React, { useState } from "react";
+import Sidebar from "../Components/Sidebar";
 
 const AddLibrarian = () => {
+  const [formData, setFormData] = useState({
+    librarian_id: "",
+    name: "",
+    email_id: "",
+    phone_no: "",
+    password_hash: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5001/addLibrarian", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("✅ Librarian added successfully!");
+        setFormData({
+          librarian_id: "",
+          name: "",
+          email_id: "",
+          phone_no: "",
+          password_hash: "",
+        });
+      } else {
+        alert("⚠️ " + data.message);
+      }
+    } catch (err) {
+      console.error("Error adding librarian:", err);
+      alert("❌ Server error. Check backend logs.");
+    }
+  };
+
   const styles = {
     body: {
       fontFamily: "Verdana, sans-serif",
@@ -93,10 +134,8 @@ const AddLibrarian = () => {
       />
 
       <div style={styles.body}>
-        {/* ✅ Using Sidebar from components folder */}
         <Sidebar />
 
-        {/* Main content area */}
         <div style={styles.main}>
           <div style={styles.topbar}>
             <div>
@@ -104,8 +143,7 @@ const AddLibrarian = () => {
               Librarian
             </div>
             <div>
-              <i className="fas fa-user-circle" style={styles.topbarIcon}></i>{" "}
-              Admin
+              <i className="fas fa-user-circle" style={styles.topbarIcon}></i> Admin
             </div>
           </div>
 
@@ -119,14 +157,16 @@ const AddLibrarian = () => {
                 Add New Librarian
               </h2>
 
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div style={styles.formGroup}>
-                  <label htmlFor="librarianName" style={styles.label}>
+                  <label htmlFor="name" style={styles.label}>
                     Name
                   </label>
                   <input
                     type="text"
-                    id="librarianName"
+                    id="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Enter librarian name"
                     required
                     style={styles.input}
@@ -134,12 +174,14 @@ const AddLibrarian = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="librarianEmail" style={styles.label}>
+                  <label htmlFor="email_id" style={styles.label}>
                     Email
                   </label>
                   <input
                     type="email"
-                    id="librarianEmail"
+                    id="email_id"
+                    value={formData.email_id}
+                    onChange={handleChange}
                     placeholder="Enter librarian email"
                     required
                     style={styles.input}
@@ -147,12 +189,14 @@ const AddLibrarian = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="librarianID" style={styles.label}>
+                  <label htmlFor="librarian_id" style={styles.label}>
                     Librarian ID
                   </label>
                   <input
                     type="text"
-                    id="librarianID"
+                    id="librarian_id"
+                    value={formData.librarian_id}
+                    onChange={handleChange}
                     placeholder="Enter Librarian ID"
                     required
                     style={styles.input}
@@ -160,12 +204,14 @@ const AddLibrarian = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="phone" style={styles.label}>
+                  <label htmlFor="phone_no" style={styles.label}>
                     Phone Number
                   </label>
                   <input
                     type="text"
-                    id="phone"
+                    id="phone_no"
+                    value={formData.phone_no}
+                    onChange={handleChange}
                     placeholder="Enter phone number"
                     required
                     style={styles.input}

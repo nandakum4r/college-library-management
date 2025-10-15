@@ -1,7 +1,51 @@
-import React from "react";
-import Sidebar from "../Components/Sidebar"; // ✅ using your existing Sidebar
+import React, { useState } from "react";
+import Sidebar from "../Components/Sidebar";
 
 const AddStudent = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email_id: "",
+    reg_no: "",
+    department: "",
+    year_of_study: "",
+    phone_no: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // ✅ stop page refresh
+
+    try {
+      const res = await fetch("http://localhost:5001/addStudent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("✅ Student added successfully!");
+        setFormData({
+          name: "",
+          email_id: "",
+          reg_no: "",
+          department: "",
+          year_of_study: "",
+          phone_no: "",
+        });
+      } else {
+        alert("⚠️ " + data.message);
+      }
+    } catch (err) {
+      console.error("Error adding student:", err);
+      alert("❌ Server error. Check backend logs.");
+    }
+  };
+
   const styles = {
     body: {
       fontFamily: "Verdana, sans-serif",
@@ -101,19 +145,15 @@ const AddStudent = () => {
       />
 
       <div style={styles.body}>
-        {/* ✅ Using Sidebar from components folder */}
         <Sidebar />
-
-        {/* Main content area */}
         <div style={styles.main}>
           <div style={styles.topbar}>
             <div>
-              <i className="fas fa-user-plus" style={styles.topbarIcon}></i> Add
-              Student
+              <i className="fas fa-user-plus" style={styles.topbarIcon}></i>
+              Add Student
             </div>
             <div>
-              <i className="fas fa-user-circle" style={styles.topbarIcon}></i>{" "}
-              Admin
+              <i className="fas fa-user-circle" style={styles.topbarIcon}></i> Admin
             </div>
           </div>
 
@@ -127,14 +167,16 @@ const AddStudent = () => {
                 Add New Student
               </h2>
 
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div style={styles.formGroup}>
-                  <label htmlFor="studentName" style={styles.label}>
+                  <label htmlFor="name" style={styles.label}>
                     Full Name
                   </label>
                   <input
+                    id="name"
                     type="text"
-                    id="studentName"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Enter student name"
                     required
                     style={styles.input}
@@ -142,12 +184,14 @@ const AddStudent = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="studentEmail" style={styles.label}>
+                  <label htmlFor="email_id" style={styles.label}>
                     Email
                   </label>
                   <input
+                    id="email_id"
                     type="email"
-                    id="studentEmail"
+                    value={formData.email_id}
+                    onChange={handleChange}
                     placeholder="Enter student email"
                     required
                     style={styles.input}
@@ -155,12 +199,14 @@ const AddStudent = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="studentID" style={styles.label}>
+                  <label htmlFor="reg_no" style={styles.label}>
                     Register Number
                   </label>
                   <input
+                    id="reg_no"
                     type="text"
-                    id="studentID"
+                    value={formData.reg_no}
+                    onChange={handleChange}
                     placeholder="Enter Register Number"
                     required
                     style={styles.input}
@@ -168,11 +214,17 @@ const AddStudent = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="course" style={styles.label}>
-                    Course
+                  <label htmlFor="department" style={styles.label}>
+                    Department
                   </label>
-                  <select id="course" required style={styles.select}>
-                    <option value="">Select Course</option>
+                  <select
+                    id="department"
+                    value={formData.department}
+                    onChange={handleChange}
+                    required
+                    style={styles.select}
+                  >
+                    <option value="">Select Department</option>
                     <option value="B.E. CSE">B.E. CSE</option>
                     <option value="B.E. ECE">B.E. ECE</option>
                     <option value="B.E. Mechanical">B.E. Mechanical</option>
@@ -181,25 +233,37 @@ const AddStudent = () => {
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="year" style={styles.label}>
+                  <label htmlFor="year_of_study" style={styles.label}>
                     Year
                   </label>
-                  <select id="year" required style={styles.select}>
+                <select
+                    id="year_of_study"
+                    value={formData.year_of_study}
+                    onChange={handleChange}
+                    required
+                    style={styles.select}
+                  >
                     <option value="">Select Year</option>
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
                   </select>
+
+
+
+
                 </div>
 
                 <div style={styles.formGroup}>
-                  <label htmlFor="contact" style={styles.label}>
+                  <label htmlFor="phone_no" style={styles.label}>
                     Contact Number
                   </label>
                   <input
+                    id="phone_no"
                     type="text"
-                    id="contact"
+                    value={formData.phone_no}
+                    onChange={handleChange}
                     placeholder="Enter contact number"
                     required
                     style={styles.input}

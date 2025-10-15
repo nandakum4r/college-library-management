@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
+
+  const navigate = useNavigate(); // ✅ for redirection
 
   // Fetch role from sessionStorage on mount
   useEffect(() => {
@@ -30,7 +32,12 @@ export default function Login() {
       sessionStorage.setItem("role", role);
 
       alert(`Login successful as ${role}!`);
-      window.location.href = "/home";
+      if (role === "admin") {
+        navigate("/dashboard");
+      } 
+      else {
+        navigate("/home"); 
+      }
     } else {
       alert(data.message);
     }

@@ -1,13 +1,29 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../Components/Sidebar.js";
 
 const Dashboard = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const email = sessionStorage.getItem("email");
+    const role = sessionStorage.getItem("role");
+
+    if (!email || !role) return;
+
+    fetch(`http://localhost:5001/getUser?email=${email}&role=${role}`)
+      .then((res) => res.json())
+      .then((data) => setUser(data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  if (!user) return <div>Loading...</div>;
+
   return (
     <div style={styles.dashboardContainer}>
       <Sidebar />
 
       <div style={styles.main}>
-        {/* ✅ Topbar (kept here as you requested) */}
+        {/* Topbar */}
         <div style={styles.topbar}>
           <div>
             <i
@@ -21,29 +37,29 @@ const Dashboard = () => {
               className="fas fa-user-circle"
               style={{ marginRight: "10px", color: "#60a5fa" }}
             ></i>
-            Admin
+            {user.name}
           </div>
         </div>
 
-        {/* ✅ Main content */}
+        {/* Main content */}
         <div style={styles.content}>
           <div style={styles.profileCard}>
             <img
               src="https://cdn-icons-png.flaticon.com/512/1053/1053244.png"
-              alt="Admin Profile"
+              alt="Profile"
               style={styles.profileImage}
             />
-            <h3 style={styles.profileName}>John Smith</h3>
-            <p style={styles.profileRole}>Administrator</p>
+            <h3 style={styles.profileName}>{user.name}</h3>
+            <p style={styles.profileRole}>{user.role || "Administrator"}</p>
 
             <div style={styles.infoLabel}>Email</div>
-            <div style={styles.infoBox}>admin@librarysystem.com</div>
+            <div style={styles.infoBox}>{user.email_id}</div>
 
             <div style={styles.infoLabel}>Role</div>
-            <div style={styles.infoBox}>System Administrator</div>
+            <div style={styles.infoBox}>{user.role || "System Administrator"}</div>
 
             <div style={styles.infoLabel}>Contact</div>
-            <div style={styles.infoBox}>+91 9876543210</div>
+            <div style={styles.infoBox}>{user.phone_no}</div>
           </div>
         </div>
       </div>

@@ -1,16 +1,44 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// Public pages
 import Home from "./Components/Home";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
+
+// Admin/dashboard pages
+import Dashboard from "./pages/Dashboard";
+import ManageStudents from "./pages/ManageStudents";
+import AddStudents from "./pages/AddStudents";
+import EditStudent from "./pages/EditStudent";
+import Reports from "./pages/Reports";
+import ManageLibrarians from "./pages/ManageLibrarians";
+import AddLibrarian from "./pages/AddLibrarian";
+import EditLibrarian from "./pages/EditLibrarian";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+
+        {/* Admin/Dashboard routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/students" element={<ManageStudents />} />
+        <Route path="/addstudents" element={<AddStudents />} />
+        <Route path="/editstudent" element={<EditStudent />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/librarians" element={<ManageLibrarians />} />
+        <Route path="/addlibrarian" element={<AddLibrarian />} />
+        <Route path="/editlibrarian" element={<EditLibrarian />} />
+        <Route path="/edit-student/:reg_no" element={<EditStudent />} />
+        <Route path="/manage-librarians" element={<ManageLibrarians />} />
+        <Route path="/add-librarian" element={<AddLibrarian />} />
+        <Route path="/edit-librarian/:id" element={<EditLibrarian />} /> {/* ✅ Dynamic */}
+
       </Routes>
     </Router>
   );

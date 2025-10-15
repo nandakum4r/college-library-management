@@ -1,23 +1,63 @@
-import React, { useState } from "react";
-import Sidebar from "../Components/Sidebar"; // your existing Sidebar
+import React, { useState, useEffect } from "react";
+import Sidebar from "../Components/Sidebar";
+import { useParams } from "react-router-dom";
 
 const EditLibrarian = () => {
+  const { id } = useParams(); // get librarian ID from URL
   const [librarian, setLibrarian] = useState({
-    name: "Anita Sharma",
-    email: "anita@example.com",
-    librarianID: "L001",
-    phone: "9876543210",
+    name: "",
+    email_id: "",
+    librarian_id: "",
+    phone_no: "",
   });
+    console.log("Current librarian state:", librarian);
 
+  // Fetch librarian data on mount
+  useEffect(() => {
+    const fetchLibrarian = async () => {
+      try {
+        const res = await fetch(`http://localhost:5001/librarians/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch librarian");
+        const data = await res.json();
+        setLibrarian({
+          name: data.name,
+          email_id: data.email_id,
+          librarian_id: data.librarian_id || data.id,
+          phone_no: data.phone_no,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchLibrarian();
+  }, [id]);
+
+  // Handle input changes
   const handleChange = (e) => {
     const { id, value } = e.target;
     setLibrarian((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = (e) => {
+  // Submit updated data
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated librarian:", librarian);
-    // Add API call or state update logic here
+    try {
+      const res = await fetch(`http://localhost:5001/librarians/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(librarian),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("✅ Librarian updated successfully!");
+      } else {
+        alert("⚠️ " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Server error.");
+    }
   };
 
   return (
@@ -57,8 +97,8 @@ const EditLibrarian = () => {
             padding: "20px",
           }}
         >
-          <div
-            className="form-container"
+          <form
+            onSubmit={handleSubmit}
             style={{
               background: "white",
               padding: "30px",
@@ -72,120 +112,92 @@ const EditLibrarian = () => {
               Edit Librarian Details
             </h2>
 
-            <form onSubmit={handleSubmit}>
-              {/* Name */}
-              <div style={{ marginBottom: "15px" }}>
-                <label htmlFor="name" style={{ display: "block", fontWeight: "bold", marginBottom: "5px", fontSize: "14px" }}>
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={librarian.name}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid #ccc",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
-                />
-              </div>
+            {/* Name */}
+            <label style={labelStyle}>Name</label>
+            <input
+              type="text"
+              id="name"
+              value={librarian.name}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
 
-              {/* Email */}
-              <div style={{ marginBottom: "15px" }}>
-                <label htmlFor="email" style={{ display: "block", fontWeight: "bold", marginBottom: "5px", fontSize: "14px" }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={librarian.email}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid #ccc",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
-                />
-              </div>
+            {/* Email */}
+            <label style={labelStyle}>Email</label>
+            <input
+              type="email"
+              id="email_id"
+              value={librarian.email_id}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
 
-              {/* Librarian ID (read-only) */}
-              <div style={{ marginBottom: "15px" }}>
-                <label htmlFor="librarianID" style={{ display: "block", fontWeight: "bold", marginBottom: "5px", fontSize: "14px" }}>
-                  Librarian ID
-                </label>
-                <input
-                  type="text"
-                  id="librarianID"
-                  value={librarian.librarianID}
-                  readOnly
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid #ccc",
-                    fontSize: "14px",
-                    outline: "none",
-                    background: "#e5e7eb",
-                  }}
-                />
-              </div>
+            {/* Librarian ID (read-only) */}
+            <label style={labelStyle}>Librarian ID</label>
+            <input
+              id="librarian_id"
+              value={librarian.librarian_id}
+              readOnly
+              style={{ ...inputStyle, background: "#e5e7eb" }}
+            />
 
-              {/* Phone */}
-              <div style={{ marginBottom: "15px" }}>
-                <label htmlFor="phone" style={{ display: "block", fontWeight: "bold", marginBottom: "5px", fontSize: "14px" }}>
-                  Phone Number
-                </label>
-                <input
-                  type="text"
-                  id="phone"
-                  value={librarian.phone}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid #ccc",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
-                />
-              </div>
+            {/* Phone */}
+            <label style={labelStyle}>Phone Number</label>
+            <input
+              id="phone_no"
+              value={librarian.phone_no}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
 
-              <button
-                type="submit"
-                style={{
-                  width: "100%",
-                  background: "#2563eb",
-                  color: "white",
-                  border: "none",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  transition: "0.3s",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "#1e40af")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "#2563eb")}
-              >
-                Update Librarian
-              </button>
-            </form>
-          </div>
+            <button
+              type="submit"
+              style={buttonStyle}
+              onMouseOver={(e) => (e.currentTarget.style.background = "#1e40af")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "#2563eb")}
+            >
+              Update Librarian
+            </button>
+          </form>
         </div>
       </div>
     </div>
   );
+};
+
+// Styles
+const labelStyle = {
+  display: "block",
+  fontWeight: "bold",
+  marginBottom: "5px",
+  fontSize: "14px",
+  marginTop: "10px",
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  fontSize: "14px",
+  outline: "none",
+  marginBottom: "10px",
+};
+
+const buttonStyle = {
+  width: "100%",
+  background: "#2563eb",
+  color: "white",
+  border: "none",
+  padding: "10px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontSize: "15px",
+  fontWeight: "bold",
+  transition: "0.3s",
 };
 
 export default EditLibrarian;
