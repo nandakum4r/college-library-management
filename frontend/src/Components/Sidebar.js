@@ -1,7 +1,15 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = (e) => {
+    e.preventDefault(); // prevent page reload
+    sessionStorage.clear();
+    navigate("/login");
+  };
+
   const styles = {
     sidebar: {
       width: "220px",
@@ -28,6 +36,9 @@ const Sidebar = () => {
       fontSize: "15px",
       transition: "0.3s",
     },
+    sidebarLinkHover: {
+      background: "#374151",
+    },
   };
 
   return (
@@ -46,13 +57,14 @@ const Sidebar = () => {
         <Link to="/students" style={styles.sidebarLink}>
           <i className="fas fa-users"></i> Manage Students
         </Link>
-        <a href="/Librarians" style={styles.sidebarLink}>
+        <Link to="/Librarians" style={styles.sidebarLink}>
           <i className="fas fa-user-tie"></i> Manage Librarians
-        </a>
-        <a href="/Reports" style={styles.sidebarLink}>
+        </Link>
+        <Link to="/Reports" style={styles.sidebarLink}>
           <i className="fas fa-chart-bar"></i> Reports
-        </a>
-        <a href="#" style={styles.sidebarLink}>
+        </Link>
+        {/* ✅ Same look, but works */}
+        <a href="#" onClick={handleLogout} style={styles.sidebarLink}>
           <i className="fas fa-sign-out-alt"></i> Logout
         </a>
       </div>

@@ -1,6 +1,15 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    sessionStorage.clear();
+    navigate("/login");
+  };
+
   return (
     <>
       <style>{`
@@ -50,7 +59,10 @@ export default function StudentSidebar() {
         <a href="/borrow"><i className="fas fa-search"></i> Borrow Books</a>
         <a href="/mybooks"><i className="fas fa-book"></i> My Books</a>
         <a href="/dueDates"><i className="fas fa-calendar-alt"></i> Due Dates</a>
-        <a href="#"><i className="fas fa-sign-out-alt"></i> Logout</a>
+        {/* ✅ Keeps look, works properly */}
+        <a href="#" onClick={handleLogout}>
+          <i className="fas fa-sign-out-alt"></i> Logout
+        </a>
       </div>
     </>
   );
