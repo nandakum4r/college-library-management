@@ -1,146 +1,114 @@
-import React from "react";
-import StudentSidebar from "../Components/StudentSidebar"; // import sidebar
+import React, { useEffect, useState } from "react";
+import StudentSidebar from "../Components/StudentSidebar";
 
 export default function MyBooks() {
+  const [books, setBooks] = useState([]);
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const email = sessionStorage.getItem("email");
+    if (!email) {
+      alert("Please login first!");
+      return;
+    }
+
+    // Fetch student info
+    fetch(`http://localhost:5001/student/${email}`)
+      .then((res) => res.json())
+      .then((data) => setStudent(data))
+      .catch((err) => console.error("Error fetching student data:", err));
+
+    // Fetch borrowed books
+    fetch(`http://localhost:5002/mybooks/${email}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch borrowed books");
+        return res.json();
+      })
+      .then((data) => {
+        setBooks(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching borrowed books:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  // Map status to CSS class
+  const getStatusClass = (status, due_date) => {
+    const today = new Date();
+    const due = new Date(due_date);
+
+    switch (status) {
+      case "RETURNED":
+        return "status-returned";
+      case "EXPIRED":
+        return "status-expired";
+      case "ISSUE_PENDING":
+      case "ISSUED":
+        return due < today ? "status-overdue" : "status-issued";
+      default:
+        return "";
+    }
+  };
+
+  // Display text for status
+  const getStatusText = (book) => {
+    const today = new Date();
+    const due = new Date(book.due_date);
+
+    if (book.status === "RETURNED") return "Returned";
+    if (book.status === "EXPIRED") return "Expired";
+    if (book.status === "ISSUE_PENDING" || book.status === "ISSUED")
+      return today > due ? "Overdue" : "Issued";
+
+    return book.status;
+  };
+
+  if (!student) return <div>Loading student details...</div>;
+  if (loading) return <div>Loading borrowed books...</div>;
+
   return (
     <>
       <style>{`
-        body {
-          margin: 0;
-          font-family: Arial, sans-serif;
-          background: #f5f7fa;
-        }
-
-        .dashboard-container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-}
-
-/* Sidebar stays fixed width */
-.sidebar {
-  width: 220px;
-  height: 100vh;
-}
-
-/* Main content flexes naturally */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Optional: reduce padding in content */
-.content {
-  flex: 1;
-  padding: 10px 20px; /* reduce top/bottom space */
-}
-
-
-        /* Topbar */
-        .topbar {
-          background: white;
-          padding: 15px 25px;
-          font-size: 20px;
-          font-weight: bold;
-          display: flex;
-          align-items: center;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        .topbar i {
-          margin-right: 10px;
-          color: #60a5fa;
-        }
-
-        /* Content area */
-        .content {
-          flex: 1;
-          padding: 20px;
-        }
-
-        /* Profile Info */
-        .profile {
-          text-align: center;
-          margin-bottom: 30px;
-        }
-
-        .profile img {
-          width: 90px;
-          height: 90px;
-          border-radius: 50%;
-          margin-bottom: 10px;
-          border: 3px solid #1f2937;
-        }
-
-        .profile h3 {
-          margin: 5px 0;
-          color: #1f2937;
-        }
-
-        /* Books Table */
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          background: white;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        th, td {
-          padding: 12px 15px;
-          text-align: left;
-          border-bottom: 1px solid #ddd;
-        }
-
-        th {
-          background: #1f2937;
-          color: white;
-        }
-
-        tr:hover {
-          background: #f1f5f9;
-        }
-
-        .status-returned {
-          color: green;
-          font-weight: bold;
-        }
-
-        .status-issued {
-          color: orange;
-          font-weight: bold;
-        }
-
-        .status-overdue {
-          color: red;
-          font-weight: bold;
-        }
+        body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fa; }
+        .dashboard-container { display: flex; height: 100vh; width: 100%; }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .content { flex: 1; padding: 20px; }
+        .topbar { background: white; padding: 15px 25px; font-size: 20px; font-weight: bold; display: flex; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .topbar i { margin-right: 10px; color: #60a5fa; }
+        .profile { text-align: center; margin-bottom: 30px; }
+        .profile img { width: 90px; height: 90px; border-radius: 50%; margin-bottom: 10px; border: 3px solid #1f2937; }
+        .profile h3 { margin: 5px 0; color: #1f2937; }
+        .profile p { color: #4b5563; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #1f2937; color: white; }
+        tr:hover { background: #f1f5f9; }
+        .status-returned { color: green; font-weight: bold; }
+        .status-issued { color: orange; font-weight: bold; }
+        .status-overdue { color: red; font-weight: bold; }
+        .status-expired { color: #a21caf; font-weight: bold; }
       `}</style>
 
       <div className="dashboard-container">
-        {/* Sidebar */}
         <StudentSidebar />
-
-        {/* Main Content */}
         <div className="main">
           <div className="topbar">
             <i className="fas fa-book"></i> My Books
           </div>
 
           <div className="content">
-            {/* Profile Info */}
             <div className="profile">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
                 alt="Student"
               />
-              <h3>John Doe</h3>
-              <p>Student ID: S12345</p>
+              <h3>{student.name}</h3>
+              <p>Student ID: {student.reg_no}</p>
             </div>
 
-            {/* My Books Table */}
             <h2>My Books</h2>
             <table>
               <thead>
@@ -153,27 +121,23 @@ export default function MyBooks() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Data Structures in C</td>
-                  <td>Reema Thareja</td>
-                  <td>2025-09-20</td>
-                  <td>2025-10-05</td>
-                  <td className="status-issued">Issued</td>
-                </tr>
-                <tr>
-                  <td>Operating System Concepts</td>
-                  <td>Silberschatz</td>
-                  <td>2025-09-01</td>
-                  <td>2025-09-20</td>
-                  <td className="status-overdue">Overdue</td>
-                </tr>
-                <tr>
-                  <td>Database Management Systems</td>
-                  <td>Korth</td>
-                  <td>2025-08-01</td>
-                  <td>2025-08-20</td>
-                  <td className="status-returned">Returned</td>
-                </tr>
+                {books.length === 0 ? (
+                  <tr>
+                    <td colSpan="5">No books borrowed yet</td>
+                  </tr>
+                ) : (
+                  books.map((book) => (
+                    <tr key={book.borrow_id}>
+                      <td>{book.title}</td>
+                      <td>{book.author}</td>
+                      <td>{new Date(book.issue_date).toLocaleDateString()}</td>
+                      <td>{new Date(book.due_date).toLocaleDateString()}</td>
+                      <td className={getStatusClass(book.status, book.due_date)}>
+                        {getStatusText(book)}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

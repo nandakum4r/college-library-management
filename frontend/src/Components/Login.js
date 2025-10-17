@@ -34,10 +34,11 @@ export default function Login() {
       alert(`Login successful as ${role}!`);
       if (role === "admin") {
         navigate("/dashboard");
-      } 
-      else {
-        navigate("/home"); 
-      }
+      } else if (role === "student") {
+        navigate("/student-dashboard");
+      } else {
+        navigate("/home");
+}
     } else {
       alert(data.message);
     }

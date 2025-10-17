@@ -10,8 +10,8 @@ app.use(express.json());
 const pool = new Pool({
   user: "postgres", // your DB username
   host: "localhost",
-  database: "postgres", // your DB name
-  password: "laila2004", // your DB password
+  database: "college_library_db", // your DB name
+  password: "Miruthu@168", // your DB password
   port: 5432,
 });
 
@@ -323,6 +323,17 @@ app.get("/borrowReports", async (req, res) => {
   }
 });
 
+app.get("/student/:email", async (req, res) => {
+  const { email } = req.params;
+  try {
+    const result = await pool.query("SELECT * FROM student WHERE email_id=$1", [email]);
+    if (result.rows.length === 0) return res.status(404).json({ message: "Student not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 
 // --- 7️⃣ START SERVICE ---

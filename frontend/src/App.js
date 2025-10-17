@@ -15,6 +15,10 @@ import Reports from "./pages/Reports";
 import ManageLibrarians from "./pages/ManageLibrarians";
 import AddLibrarian from "./pages/AddLibrarian";
 import EditLibrarian from "./pages/EditLibrarian";
+import StudentDashboard from "./pages/StudentDashboard";
+import BorrowBooks from "./pages/BorrowBooks";
+import MyBooks from "./pages/MyBooks";
+import DueDates from "./pages/DueDates";
 
 function App() {
   return (
@@ -37,8 +41,15 @@ function App() {
         <Route path="/edit-student/:reg_no" element={<EditStudent />} />
         <Route path="/manage-librarians" element={<ManageLibrarians />} />
         <Route path="/add-librarian" element={<AddLibrarian />} />
-        <Route path="/edit-librarian/:id" element={<EditLibrarian />} /> {/* ✅ Dynamic */}
+        <Route path="/edit-librarian/:id" element={<EditLibrarian />} /> {/* Dynamic */}
 
+        {/* Student Dashboard */}
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+
+        {/* Other Pages */}
+        <Route path="/borrow" element={<BorrowBooks />} />
+        <Route path="/myBooks" element={<MyBooks />} />
+        <Route path="/dueDates" element={<DueDates />} />
       </Routes>
     </Router>
   );

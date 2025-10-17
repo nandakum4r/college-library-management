@@ -1,13 +1,30 @@
-import React from "react";
-import StudentSidebar from "../Components/StudentSidebar.js"; // fixed import
+import React, { useEffect, useState } from "react";
+import StudentSidebar from "../Components/StudentSidebar.js"; // Sidebar component
 
 const StudentDashboard = () => {
+  const [student, setStudent] = useState(null);
+
+  useEffect(() => {
+    const email = sessionStorage.getItem("email"); // get logged-in student's email
+    if (!email) return;
+
+    // Fetch student data from backend
+    fetch(`http://localhost:5001/student/${email}`)
+      .then((res) => res.json())
+      .then((data) => setStudent(data))
+      .catch((err) => console.error("Error fetching student data:", err));
+  }, []);
+
+  if (!student) {
+    return <div>Loading student details...</div>;
+  }
+
   return (
     <div style={styles.dashboardContainer}>
       <StudentSidebar />
 
       <div style={styles.main}>
-        {/* ✅ Topbar */}
+        {/* Topbar */}
         <div style={styles.topbar}>
           <div>
             <i
@@ -21,11 +38,11 @@ const StudentDashboard = () => {
               className="fas fa-user-circle"
               style={{ marginRight: "10px", color: "#60a5fa" }}
             ></i>
-            Student
+            {student.name}
           </div>
         </div>
 
-        {/* ✅ Main content */}
+        {/* Main content */}
         <div style={styles.content}>
           <div style={styles.profileCard}>
             <img
@@ -33,17 +50,23 @@ const StudentDashboard = () => {
               alt="Student Profile"
               style={styles.profileImage}
             />
-            <h3 style={styles.profileName}>Jane Doe</h3>
-            <p style={styles.profileRole}>Student</p>
+            <h3 style={styles.profileName}>{student.name}</h3>
+            <p style={styles.profileRole}>{student.department} Student</p>
+
+            <div style={styles.infoLabel}>Registration No</div>
+            <div style={styles.infoBox}>{student.reg_no}</div>
 
             <div style={styles.infoLabel}>Email</div>
-            <div style={styles.infoBox}>jane.doe@student.com</div>
+            <div style={styles.infoBox}>{student.email_id}</div>
 
             <div style={styles.infoLabel}>Course</div>
-            <div style={styles.infoBox}>B.E. CSE</div>
+            <div style={styles.infoBox}>{student.course}</div>
 
-            <div style={styles.infoLabel}>Contact</div>
-            <div style={styles.infoBox}>+91 9876543210</div>
+            <div style={styles.infoLabel}>Year</div>
+            <div style={styles.infoBox}>{student.year_of_study}</div>
+
+            <div style={styles.infoLabel}>Phone</div>
+            <div style={styles.infoBox}>{student.phone_no}</div>
           </div>
         </div>
       </div>
