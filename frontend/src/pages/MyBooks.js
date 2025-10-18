@@ -5,6 +5,7 @@ export default function MyBooks() {
   const [books, setBooks] = useState([]);
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [totalFine, setTotalFine] = useState(0);
 
   useEffect(() => {
     const email = sessionStorage.getItem("email");
@@ -19,14 +20,15 @@ export default function MyBooks() {
       .then((data) => setStudent(data))
       .catch((err) => console.error("Error fetching student data:", err));
 
-    // Fetch borrowed books
+    // Fetch borrowed books (includes fine data)
     fetch(`http://localhost:5002/mybooks/${email}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch borrowed books");
         return res.json();
       })
       .then((data) => {
-        setBooks(data);
+        setBooks(data.books);
+        setTotalFine(data.totalFine);
         setLoading(false);
       })
       .catch((err) => {
@@ -37,32 +39,27 @@ export default function MyBooks() {
 
   // Map status to CSS class
   const getStatusClass = (status, due_date) => {
-    const today = new Date();
-    const due = new Date(due_date);
-
-    switch (status) {
-      case "RETURNED":
-        return "status-returned";
-      case "EXPIRED":
-        return "status-expired";
-      case "ISSUE_PENDING":
-      case "ISSUED":
-        return due < today ? "status-overdue" : "status-issued";
-      default:
-        return "";
+    if (status === "RETURNED") return "status-returned";
+    if (status === "EXPIRED") return "status-expired";
+    if (status === "ISSUE_PENDING") return "status-issued"; // orange for pending
+    if (status === "ISSUED") {
+      const today = new Date();
+      const due = new Date(due_date);
+      return today > due ? "status-overdue" : "status-issued";
     }
+    return "";
   };
 
   // Display text for status
   const getStatusText = (book) => {
-    const today = new Date();
-    const due = new Date(book.due_date);
-
     if (book.status === "RETURNED") return "Returned";
     if (book.status === "EXPIRED") return "Expired";
-    if (book.status === "ISSUE_PENDING" || book.status === "ISSUED")
+    if (book.status === "ISSUE_PENDING") return "Issue Pending"; // show text explicitly
+    if (book.status === "ISSUED") {
+      const today = new Date();
+      const due = new Date(book.due_date);
       return today > due ? "Overdue" : "Issued";
-
+    }
     return book.status;
   };
 
@@ -87,9 +84,10 @@ export default function MyBooks() {
         th { background: #1f2937; color: white; }
         tr:hover { background: #f1f5f9; }
         .status-returned { color: green; font-weight: bold; }
-        .status-issued { color: orange; font-weight: bold; }
+        .status-issued { color: orange; font-weight: bold; } /* used for ISSUE_PENDING or normal issued */
         .status-overdue { color: red; font-weight: bold; }
         .status-expired { color: #a21caf; font-weight: bold; }
+        .fine-total { text-align: right; margin-top: 15px; font-size: 18px; font-weight: bold; color: #1f2937; }
       `}</style>
 
       <div className="dashboard-container">
@@ -118,12 +116,13 @@ export default function MyBooks() {
                   <th>Issue Date</th>
                   <th>Due Date</th>
                   <th>Status</th>
+                  <th>Fine (₹)</th>
                 </tr>
               </thead>
               <tbody>
                 {books.length === 0 ? (
                   <tr>
-                    <td colSpan="5">No books borrowed yet</td>
+                    <td colSpan="6">No books borrowed yet</td>
                   </tr>
                 ) : (
                   books.map((book) => (
@@ -135,11 +134,14 @@ export default function MyBooks() {
                       <td className={getStatusClass(book.status, book.due_date)}>
                         {getStatusText(book)}
                       </td>
+                      <td>{book.fine === 0 ? "-" : book.fine}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+
+            <div className="fine-total">Total Fine: ₹{totalFine}</div>
           </div>
         </div>
       </div>

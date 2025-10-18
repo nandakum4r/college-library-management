@@ -3,6 +3,9 @@ import StudentSidebar from "../Components/StudentSidebar";
 
 export default function BorrowBooks() {
   const [books, setBooks] = useState([]);
+  const [activeBorrowCount, setActiveBorrowCount] = useState(0);
+
+  const email_id = sessionStorage.getItem("email");
 
   // Fetch books from backend
   const fetchBooks = () => {
@@ -15,13 +18,23 @@ export default function BorrowBooks() {
       .catch((err) => console.error("Error fetching books:", err));
   };
 
+  // Fetch active borrow count
+  const fetchActiveBorrowCount = () => {
+    if (!email_id) return;
+
+    fetch(`http://localhost:5002/mybooks/activecount/${email_id}`)
+      .then((res) => res.json())
+      .then((data) => setActiveBorrowCount(data.activeBorrowCount))
+      .catch((err) => console.error("Error fetching borrow count:", err));
+  };
+
   useEffect(() => {
     fetchBooks();
+    fetchActiveBorrowCount();
   }, []);
 
   // Borrow button click handler
   const handleBorrow = async (book_id) => {
-    const email_id = sessionStorage.getItem("email"); // use actual logged-in info
     if (!email_id) {
       alert("Please log in first");
       return;
@@ -41,11 +54,10 @@ export default function BorrowBooks() {
         return;
       }
 
-      alert(
-        `Borrow request successful!\nToken: ${data.token}`
-      );
+      alert(`Borrow request successful!\nToken: ${data.token}`);
 
       fetchBooks(); // refresh book list
+      fetchActiveBorrowCount(); // refresh borrow count
     } catch (err) {
       console.error(err);
       alert("Error processing borrow request");
@@ -55,102 +67,22 @@ export default function BorrowBooks() {
   return (
     <>
       <style>{`
-        body { 
-        font-family: Verdana,sans-serif; 
-        margin:0; 
-        padding:0; 
-        background:#f4f6fa; 
-        }
-
-        .dashboard-container { 
-        display:flex; 
-        height:100vh; 
-        width:100%; 
-        }
-        
-        .main { 
-        flex:1; 
-        display:flex; 
-        flex-direction:column; 
-        background:#f4f6fa; 
-        }
-
-        .topbar { 
-        background:white; 
-        color:black; 
-        padding:15px 25px; 
-        font-size:20px; 
-        font-weight:bold; 
-        display:flex; 
-        align-items:center; 
-        box-shadow:0 2px 6px rgba(0,0,0,0.1); 
-        }
-
-        .topbar i { 
-        margin-right:10px; 
-        color:#60a5fa; 
-        }
-
-        .content { 
-        flex:1; 
-        display:flex; 
-        justify-content:center; 
-        align-items:center; 
-        }
-
-        .book-section { 
-        width:800px; 
-        background:white; 
-        padding:30px; 
-        border-radius:12px; 
-        box-shadow:0 4px 10px rgba(0,0,0,0.1); 
-        text-align:center; 
-        }
-
-        .book-section h3 { 
-        margin-top:0; 
-        color:#1f2937; 
-        }
-
-        table { 
-        width:100%; 
-        border-collapse:collapse; 
-        margin-top:15px; 
-        }
-
-        th, td { 
-        border:1px solid #ddd; 
-        padding:10px; 
-        text-align:center; 
-        }
-
-        th { 
-        background:#1f2937; 
-        color:white; 
-        }
-
-        tr:nth-child(even) { 
-        background:#f9fafb; 
-        }
-
-        .borrow-btn { 
-        background:#059669; 
-        color:white; 
-        border:none; 
-        padding:6px 12px; 
-        border-radius:6px; 
-        cursor:pointer; 
-        transition:0.3s; 
-        }
-
-        .borrow-btn:hover { 
-        background:#047857; 
-        }
-
-        .borrow-btn:disabled { 
-        background:gray; 
-        cursor:not-allowed; 
-        }
+        body { font-family: Verdana,sans-serif; margin:0; padding:0; background:#f4f6fa; }
+        .dashboard-container { display:flex; height:100vh; width:100%; }
+        .main { flex:1; display:flex; flex-direction:column; background:#f4f6fa; }
+        .topbar { background:white; color:black; padding:15px 25px; font-size:20px; font-weight:bold; display:flex; align-items:center; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+        .topbar i { margin-right:10px; color:#60a5fa; }
+        .content { flex:1; display:flex; justify-content:center; align-items:center; }
+        .book-section { width:800px; background:white; padding:30px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:center; }
+        .book-section h3 { margin-top:0; color:#1f2937; }
+        table { width:100%; border-collapse:collapse; margin-top:15px; }
+        th, td { border:1px solid #ddd; padding:10px; text-align:center; }
+        th { background:#1f2937; color:white; }
+        tr:nth-child(even) { background:#f9fafb; }
+        .borrow-btn { background:#059669; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; transition:0.3s; }
+        .borrow-btn:hover { background:#047857; }
+        .borrow-btn:disabled { background:gray; cursor:not-allowed; }
+        .limit-message { margin-bottom: 10px; color:red; font-weight:bold; }
       `}</style>
 
       <div className="dashboard-container">
@@ -163,6 +95,13 @@ export default function BorrowBooks() {
           <div className="content">
             <div className="book-section">
               <h3>Available Books</h3>
+
+              {activeBorrowCount >= 4 && (
+                <div className="limit-message">
+                  You have reached the maximum borrow limit (4 books). Cannot borrow more.
+                </div>
+              )}
+
               <table>
                 <thead>
                   <tr>
@@ -186,10 +125,10 @@ export default function BorrowBooks() {
                         <td>
                           <button
                             className="borrow-btn"
-                            disabled={book.available_copies === 0}
+                            disabled={book.available_copies === 0 || activeBorrowCount >= 4}
                             onClick={() => handleBorrow(book.book_id)}
                           >
-                            {book.available_copies > 0 ? "Borrow" : "Unavailable"}
+                            Borrow
                           </button>
                         </td>
                       </tr>
