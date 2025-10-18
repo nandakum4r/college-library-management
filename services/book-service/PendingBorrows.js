@@ -1,13 +1,14 @@
-// file: updateExpiredBorrows.js
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const crypto = require("crypto");
 const { Pool } = require("pg");
 
-const pool = new Pool({
-  user: "postgres",
-  host: "127.0.0.1",
-  database: "college_library_db",
-  password: "Miruthu@168",
-  port: 5432,
-});
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+
+const pool = require("../db");
 
 async function updateExpiredBorrows() {
   try {

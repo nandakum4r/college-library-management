@@ -8,13 +8,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const pool = new Pool({
-  user: "postgres",
-  host: "127.0.0.1",
-  database: "college_library_db",
-  password: "Miruthu@168", 
-  port: 5432,
-});
+const pool = require("../db");
 
 // Helper: hash password using SHA-256
 function hashPassword(password) {
@@ -75,11 +69,16 @@ app.post("/signup", async (req, res) => {
 });
 
 // --- LOGIN ---
+// --- LOGIN ---
 app.post("/login", async (req, res) => {
-  const { email, password, role } = req.body;
+  let { email, password, role } = req.body;
 
   if (!validateEmail(email))
     return res.status(400).json({ message: "Invalid email format" });
+
+  // Trim input to avoid accidental spaces
+  email = email.trim();
+  password = password.trim();
 
   const hashedPassword = hashPassword(password);
 
@@ -95,10 +94,16 @@ app.post("/login", async (req, res) => {
     if (result.rows.length === 0)
       return res.status(404).json({ message: "User not found" });
 
-    if (!result.rows[0].password_hash)
+    const storedHash = result.rows[0].password_hash;
+
+   // console.log("Input password:", password);
+    //console.log("Hashed input:", hashedPassword);
+    //console.log("Stored hash:", storedHash);
+
+    if (!storedHash)
       return res.status(401).json({ message: "User not signed up yet" });
 
-    if (result.rows[0].password_hash !== hashedPassword)
+    if (storedHash !== hashedPassword)
       return res.status(401).json({ message: "Wrong password" });
 
     res.json({ message: "Login successful", email, role });
@@ -108,4 +113,10 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("Auth service running on port 5000"));
+const PORT = 5000;
+
+if (require.main === module) {
+  app.listen(PORT, () => console.log("Auth service running on port 5000"));
+}
+
+module.exports = app;

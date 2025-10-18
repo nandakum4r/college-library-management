@@ -7,13 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ PostgreSQL connection
-const pool = new Pool({
-  user: "postgres", // your DB username
-  host: "localhost",
-  database: "college_library_db", // your DB name
-  password: "Miruthu@168", // your DB password
-  port: 5432,
-});
+const pool = require("../db");
 
 // --- 1️⃣ FETCH SINGLE USER (for login/dashboard) ---
 app.get("/getUser", async (req, res) => {
@@ -336,6 +330,9 @@ app.get("/student/:email", async (req, res) => {
 });
 
 
-// --- 7️⃣ START SERVICE ---
-const PORT = 5001;
-app.listen(PORT, () => console.log(`✅ User service running on port ${PORT}`));
+if (process.env.NODE_ENV !== "test") {
+  const PORT = 5001;
+  app.listen(PORT, () => console.log(`✅ User service running on port ${PORT}`));
+}
+
+module.exports = { app, pool };
