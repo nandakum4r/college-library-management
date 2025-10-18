@@ -19,7 +19,9 @@ import StudentDashboard from "./pages/StudentDashboard";
 import BorrowBooks from "./pages/BorrowBooks";
 import MyBooks from "./pages/MyBooks";
 import DueDates from "./pages/DueDates";
-
+import LibrarianDashboard from "./pages/LibrarianDashboard";
+import AddBook from "./pages/AddBook";
+import DeleteBook from "./pages/DeleteBook";
 function App() {
   return (
     <Router>
@@ -50,6 +52,10 @@ function App() {
         <Route path="/borrow" element={<BorrowBooks />} />
         <Route path="/myBooks" element={<MyBooks />} />
         <Route path="/dueDates" element={<DueDates />} />
+        
+        <Route path="/librarianDashboard" element={<LibrarianDashboard />} />
+        <Route path="/addbook" element={<AddBook  />} />
+        <Route path="/deletebook" element={<DeleteBook   />} />
       </Routes>
     </Router>
   );
