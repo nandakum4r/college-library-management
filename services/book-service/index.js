@@ -102,6 +102,7 @@ app.get("/mybooks/activecount/:email", async (req, res) => {
   }
 });
 
+
 // --- POST borrow request ---
 app.post("/borrow", async (req, res) => {
   const { email_id, book_id } = req.body;
@@ -153,6 +154,74 @@ app.post("/borrow", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// --- POST return a borrowed copy ---
+app.post("/return", async (req, res) => {
+  const { borrow_id } = req.body;
+  if (!borrow_id) return res.status(400).json({ message: "borrow_id required" });
+
+  try {
+    // 1) Find the borrow record
+    const borrowResult = await pool.query("SELECT copy_id, status FROM book_borrow WHERE borrow_id=$1", [borrow_id]);
+    if (!borrowResult.rows.length) return res.status(404).json({ message: "Borrow record not found" });
+
+    const { copy_id, status } = borrowResult.rows[0];
+
+    // Only allow return if currently issued or pending
+    if (status !== 'ISSUED' && status !== 'ISSUE_PENDING') {
+      return res.status(400).json({ message: 'Cannot return - not in issued state' });
+    }
+
+    // 2) Update borrow record: set status to RETURNED and set return_date
+    await pool.query("UPDATE book_borrow SET status='RETURNED', return_date=$1 WHERE borrow_id=$2", [new Date(), borrow_id]);
+
+    // 3) Mark copy as AVAILABLE
+    await pool.query("UPDATE book_copy SET status='AVAILABLE' WHERE copy_id=$1", [copy_id]);
+
+    res.json({ message: 'Return processed' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// --- POST renew a borrowed copy (accepts optional 'days') ---
+app.post('/renew', async (req, res) => {
+  const { borrow_id, days } = req.body;
+  if (!borrow_id) return res.status(400).json({ message: 'borrow_id required' });
+
+  // validate days if provided
+  let addDays = 14; // default
+  if (typeof days !== 'undefined') {
+    const n = parseInt(days, 10);
+    if (isNaN(n) || n <= 0) return res.status(400).json({ message: 'Invalid days value' });
+    if (n > 60) return res.status(400).json({ message: 'Requested days too large (max 60)' });
+    addDays = n;
+  }
+
+  try {
+    // fetch current record
+    const result = await pool.query('SELECT due_date, renew_count, status FROM book_borrow WHERE borrow_id=$1', [borrow_id]);
+    if (!result.rows.length) return res.status(404).json({ message: 'Borrow record not found' });
+
+    const { due_date, renew_count, status } = result.rows[0];
+
+    if (status !== 'ISSUED') return res.status(400).json({ message: 'Only issued books can be renewed' });
+
+    const maxRenew = 2;
+    if (renew_count >= maxRenew) return res.status(400).json({ message: 'Renew limit reached' });
+
+    const newDue = new Date(due_date);
+    newDue.setDate(newDue.getDate() + addDays);
+
+    await pool.query('UPDATE book_borrow SET due_date=$1, renew_count=renew_count+1 WHERE borrow_id=$2', [newDue, borrow_id]);
+    
+    res.json({ message: 'Renewed successfully', newDueDate: newDue });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
