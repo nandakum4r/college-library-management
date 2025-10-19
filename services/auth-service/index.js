@@ -113,10 +113,10 @@ app.post("/login", async (req, res) => {
   }
 });
 
-const PORT = 5000;
+const PORT = 5005;
 
 if (require.main === module) {
-  app.listen(PORT, () => console.log("Auth service running on port 5000"));
+  app.listen(PORT, '127.0.0.1', () => console.log("Auth service running on port 5005"));
 }
 
 module.exports = app;
