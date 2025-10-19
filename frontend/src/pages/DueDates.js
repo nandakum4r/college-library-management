@@ -15,7 +15,9 @@ export default function DueDates() {
       const res = await fetch(`http://127.0.0.1:5002/mybooks/${encodeURIComponent(email)}`);
       if (!res.ok) throw new Error("Failed to load borrows");
       const data = await res.json();
-      setBorrows(data.books || []);
+      // only keep active borrows (ISSUED or ISSUE_PENDING). Returned/expired should not appear on this page
+      const active = (data.books || []).filter((b) => b.status === 'ISSUED' || b.status === 'ISSUE_PENDING');
+      setBorrows(active);
     } catch (err) {
       console.error(err);
     } finally {
