@@ -3,7 +3,7 @@ process.env.NODE_ENV = "test"; // use test DB
 const request = require("supertest");
 const app = require("../index"); // make sure index.js exports app
 const pool = require("../../db"); // adjust path to your db.js
-const crypto = require("crypto");
+const crypto = require("crypto"); //hashing
 
 // Helper: hash password same as app
 function hashPassword(password) {
@@ -11,7 +11,7 @@ function hashPassword(password) {
 }
 
 beforeAll(async () => {
-  // --- Clean tables ---
+  // clear all tables
   await pool.query("DELETE FROM book_borrow");
   await pool.query("DELETE FROM book_copy");
   await pool.query("DELETE FROM book");

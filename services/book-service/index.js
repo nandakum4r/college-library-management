@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const pool = require("../db");
+const pool = require("../db"); //.
 
 
 // --- GET all books with available copies ---

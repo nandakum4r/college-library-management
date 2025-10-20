@@ -15,13 +15,13 @@ export default function Signup() {
  const handleSignup = async (e) => {
   e.preventDefault();
   try {
-    const res = await fetch("http://localhost:5005/signup", {
+    const res = await fetch("http://localhost:5005/signup", { //auth
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, role }),
+      body: JSON.stringify({ name, email, password, role }), 
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
+    if (!res.ok) throw new Error(data.message); 
 
     console.log(data);
     alert(`Signup successful as ${role}!`);
