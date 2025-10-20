@@ -225,4 +225,8 @@ app.post('/renew', async (req, res) => {
   }
 });
 
-app.listen(5002, () => console.log("Book service running on port 5002"));
+module.exports = app;
+
+if (process.env.NODE_ENV !== "test") {
+  app.listen(5002, () => console.log("Book service running on port 5002"));
+}

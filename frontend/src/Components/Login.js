@@ -37,7 +37,7 @@ export default function Login() {
       } else if (role === "student") {
         navigate("/student-dashboard");
       } else {
-        navigate("/home");
+        navigate("/librarianDashboard");
 }
     } else {
       alert(data.message);

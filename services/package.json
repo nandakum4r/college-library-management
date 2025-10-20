@@ -7,9 +7,12 @@
     "start:user": "node user-service/index.js",
     "start:auth": "node auth-service/index.js",
     "start:book": "node book-service/index.js",
-    "start:all": "node auth-service/index.js & node user-service/index.js & node book-service/index.js",
-    "test:auth": "cd services/auth-service && cross-env NODE_ENV=test jest --detectOpenHandles",
-    "test:user": "cd services/user-service && cross-env NODE_ENV=test jest --detectOpenHandles"
+    "test:auth": "cd auth-service && cross-env NODE_ENV=test jest --detectOpenHandles",
+    "test:user": "cd user-service && cross-env NODE_ENV=test jest --detectOpenHandles",
+    "test:book": "cd book-service && cross-env NODE_ENV=test jest --detectOpenHandles",
+
+    "start:all": "concurrently \"node auth-service/index.js\" \"node user-service/index.js\" \"node book-service/index.js\""
+
   },
   "jest": {
     "testEnvironment": "node",

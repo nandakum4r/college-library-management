@@ -332,7 +332,7 @@ app.get("/student/:email", async (req, res) => {
 
 if (process.env.NODE_ENV !== "test") {
   const PORT = 5001;
-  app.listen(PORT, () => console.log(`✅ User service running on port ${PORT}`));
+  app.listen(PORT, () => console.log(`User service running on port ${PORT}`));
 }
 
 module.exports = { app, pool };
