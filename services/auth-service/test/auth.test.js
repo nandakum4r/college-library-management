@@ -11,10 +11,8 @@ function hashPassword(password) {
 }
 
 beforeAll(async () => {
-  // Clear tables (optional, depending on your DB setup)
-  await pool.query("DELETE FROM student");
-  await pool.query("DELETE FROM librarian");
-  await pool.query("DELETE FROM admin");
+  // Clear tables safely respecting foreign key constraints
+  await pool.query("TRUNCATE student, librarian, admin, book_borrow RESTART IDENTITY CASCADE");
 
   // Seed students
   await pool.query(`
@@ -135,6 +133,62 @@ test("POST /signup - invalid role", async () => {
     role: "unknown",
   });
 
+  expect(res.statusCode).toBe(400);
+  expect(res.body.message).toBe("Invalid role");
+});
+
+// ✅ Test 8: Signup fail - email not in records
+test("POST /signup - email not in records", async () => {
+  const res = await request(app).post("/signup").send({
+    email: "missing@example.com",
+    password: "Strong@123",
+    role: "student",
+  });
+  expect(res.statusCode).toBe(400);
+  expect(res.body.message).toMatch("Email not found in records");
+});
+
+// ✅ Test 9: Signup fail - weak password
+test("POST /signup - weak password", async () => {
+  const res = await request(app).post("/signup").send({
+    name: "Weak Pass User",
+    email: "weak@example.com",
+    password: "abc123",
+    role: "student",
+  });
+  expect(res.statusCode).toBe(400);
+  expect(res.body.message).toBe("Weak password");
+});
+
+// ✅ Test 10: Login fail - invalid email format
+test("POST /login - invalid email format", async () => {
+  const res = await request(app).post("/login").send({
+    email: "invalidemail",
+    password: "Strong@123",
+    role: "student",
+  });
+  expect(res.statusCode).toBe(400);
+  expect(res.body.message).toBe("Invalid email format");
+});
+
+// ✅ Test 11: Login fail - user not found
+test("POST /login - user not found", async () => {
+  const res = await request(app).post("/login").send({
+    email: "nouser@example.com",
+    password: "Strong@123",
+    role: "student",
+  });
+  expect(res.statusCode).toBe(404);
+  expect(res.body.message).toBe("User not found");
+});
+
+// ✅ Test 12: Login fail - invalid role
+test("POST /login - invalid role", async () => {
+  const res = await request(app).post("/login").send({
+    email: "aarav.mehta@example.com",
+    password: "Aarav@123",
+    role: "unknown",
+  });
   expect(res.statusCode).toBe(400);
   expect(res.body.message).toBe("Invalid role");
 });
