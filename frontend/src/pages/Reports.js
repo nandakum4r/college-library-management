@@ -32,7 +32,8 @@ const Reports = () => {
           <table style={{ width: "100%", borderCollapse: "collapse", background: "white", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", borderRadius: "8px", overflow: "hidden" }}>
             <thead>
               <tr>
-                <th style={thStyle}>Issued Date</th>                
+                <th style={thStyle}>Issued Date</th>
+                <th style={thStyle}>Due Date</th>               
                 <th style={thStyle}>Return Date</th>
                 <th style={thStyle}>Student Name</th>
                 <th style={thStyle}>Book Title</th>
@@ -42,12 +43,17 @@ const Reports = () => {
             <tbody>
               {reports.map((r, idx) => (
                 <tr key={idx} style={trStyle}>
-                  <td style={tdStyle}>{r.issue_date?.split("T")[0]}</td>
-                  <td style={tdStyle}>{r.return_date ? r.return_date.split("T")[0] : "-"}</td>
+                  <td style={tdStyle}>{r.issue_date}</td>
+                  <td style={tdStyle}>{r.due_date}</td>
+                  <td style={tdStyle}>{r.return_date || "-"}</td>
                   <td style={tdStyle}>{r.student_name}</td>
                   <td style={tdStyle}>{r.book_title}</td>
-                  <td style={tdStyle}>{r.status}</td>
+                  <td style={{ ...tdStyle, color: r.status_color, fontWeight: "bold" }}>
+                    {r.current_status}
+                  </td>
                 </tr>
+
+
               ))}
             </tbody>
 

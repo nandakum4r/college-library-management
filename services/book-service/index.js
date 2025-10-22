@@ -44,7 +44,6 @@ app.get("/books", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // --- GET borrowed books for a student with fine calculation ---
 /**
  * @openapi
@@ -91,9 +90,6 @@ app.get("/books", async (req, res) => {
  *                 totalFine:
  *                   type: integer
  */
-=======
-// --- GET borrowed books for a student with real-time fine calculation ---
->>>>>>> origin/main
 app.get("/mybooks/:email", async (req, res) => {
   const email = decodeURIComponent(req.params.email);
   try {
@@ -300,7 +296,6 @@ app.post("/return", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // --- POST renew a borrowed copy (accepts optional 'days') ---
 /**
  * @openapi
@@ -323,10 +318,6 @@ app.post("/return", async (req, res) => {
  *         description: Renew successful with newDueDate
  */
 app.post('/renew', async (req, res) => {
-=======
-// --- POST renew a borrowed copy ---
-app.post("/renew", async (req, res) => {
->>>>>>> origin/main
   const { borrow_id, days } = req.body;
   if (!borrow_id) return res.status(400).json({ message: "borrow_id required" });
 

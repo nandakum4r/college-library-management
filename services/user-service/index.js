@@ -523,22 +523,35 @@ app.get("/borrowReports", async (req, res) => {
         s.name AS student_name, 
         b.title AS book_title, 
         TO_CHAR(bb.issue_date, 'YYYY-MM-DD') AS issue_date,
+        TO_CHAR(bb.due_date, 'YYYY-MM-DD') AS due_date,
         TO_CHAR(bb.return_date, 'YYYY-MM-DD') AS return_date,
-        CASE WHEN bb.return_date IS NULL THEN 'Issued' ELSE 'Returned' END AS status
+        CASE
+          WHEN bb.status = 'Issue Pending' THEN 'Issue Pending'
+          WHEN bb.return_date IS NOT NULL THEN 'Returned'
+          WHEN bb.due_date < CURRENT_DATE THEN 'Past Due Date'
+          ELSE 'Issued'
+        END AS current_status,
+        CASE
+          WHEN bb.status = 'Issue Pending' THEN 'orange'
+          WHEN bb.return_date IS NOT NULL THEN 'green'
+          WHEN bb.due_date < CURRENT_DATE THEN 'red'
+          ELSE 'blue'
+        END AS status_color
       FROM book_borrow bb
       JOIN student s ON bb.reg_no = s.reg_no
       JOIN book_copy bc ON bb.copy_id = bc.copy_id
       JOIN book b ON bc.book_id = b.book_id
       ORDER BY bb.issue_date DESC
       LIMIT 10;
-
     `);
+
     res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch reports" });
   }
 });
+
 
 /**
  * @openapi
