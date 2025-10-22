@@ -10,6 +10,26 @@ app.use(express.json());
 const pool = require("../db");
 
 // --- 1️⃣ FETCH SINGLE USER (for login/dashboard) ---
+/**
+ * @openapi
+ * /getUser:
+ *   get:
+ *     summary: Fetch a single user by email and role
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User object
+ */
 app.get("/getUser", async (req, res) => {
   const { email, role } = req.query;
 
@@ -51,6 +71,15 @@ app.get("/getUser", async (req, res) => {
 });
 
 // --- 2️⃣ FETCH ALL STUDENTS ---
+/**
+ * @openapi
+ * /students:
+ *   get:
+ *     summary: Get list of students
+ *     responses:
+ *       200:
+ *         description: Array of students
+ */
 app.get("/students", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -73,6 +102,21 @@ app.get("/students", async (req, res) => {
 });
 
 // --- 3️⃣ FETCH SINGLE STUDENT (for Edit form) ---
+/**
+ * @openapi
+ * /students/{reg_no}:
+ *   get:
+ *     summary: Get a single student by reg_no
+ *     parameters:
+ *       - in: path
+ *         name: reg_no
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Student object
+ */
 app.get("/students/:reg_no", async (req, res) => {
   try {
     const { reg_no } = req.params;
@@ -90,6 +134,34 @@ app.get("/students/:reg_no", async (req, res) => {
 });
 
 // --- 4️⃣ ADD NEW STUDENT ---
+/**
+ * @openapi
+ * /addStudent:
+ *   post:
+ *     summary: Add a new student
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reg_no:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *               year_of_study:
+ *                 type: integer
+ *               email_id:
+ *                 type: string
+ *               phone_no:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Student added
+ */
 app.post("/addStudent", async (req, res) => {
   const { reg_no, name, department, year_of_study, email_id, phone_no } = req.body;
 
@@ -125,6 +197,38 @@ app.post("/addStudent", async (req, res) => {
 });
 
 // --- 5️⃣ UPDATE STUDENT ---
+/**
+ * @openapi
+ * /students/{reg_no}:
+ *   put:
+ *     summary: Update a student
+ *     parameters:
+ *       - in: path
+ *         name: reg_no
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *               year_of_study:
+ *                 type: integer
+ *               email_id:
+ *                 type: string
+ *               phone_no:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Student updated
+ */
 app.put("/students/:reg_no", async (req, res) => {
   const { reg_no } = req.params;
   console.log("Fetching student with reg_no:", reg_no);
@@ -160,6 +264,21 @@ app.put("/students/:reg_no", async (req, res) => {
 });
 
 // --- 6️⃣ DELETE STUDENT ---
+/**
+ * @openapi
+ * /students/{reg_no}:
+ *   delete:
+ *     summary: Delete a student
+ *     parameters:
+ *       - in: path
+ *         name: reg_no
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Student deleted
+ */
 app.delete("/students/:reg_no", async (req, res) => {
   try {
     const { reg_no } = req.params;
@@ -176,6 +295,15 @@ app.delete("/students/:reg_no", async (req, res) => {
   }
 });
 // --- 8️⃣ FETCH ALL LIBRARIANS ---
+/**
+ * @openapi
+ * /librarians:
+ *   get:
+ *     summary: Get list of librarians
+ *     responses:
+ *       200:
+ *         description: Array of librarians
+ */
 app.get("/librarians", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -191,6 +319,21 @@ app.get("/librarians", async (req, res) => {
 });
 
 // --- 9️⃣ FETCH SINGLE LIBRARIAN ---
+/**
+ * @openapi
+ * /librarians/{id}:
+ *   get:
+ *     summary: Get a single librarian by id
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Librarian object
+ */
 app.get("/librarians/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -211,6 +354,32 @@ app.get("/librarians/:id", async (req, res) => {
 });
 
 // --- 🔟 ADD NEW LIBRARIAN ---
+/**
+ * @openapi
+ * /addLibrarian:
+ *   post:
+ *     summary: Add a new librarian
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               librarian_id:
+ *                 type: integer
+ *               name:
+ *                 type: string
+ *               email_id:
+ *                 type: string
+ *               phone_no:
+ *                 type: string
+ *               password_hash:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Librarian added
+ */
 app.post("/addLibrarian", async (req, res) => {
   const { librarian_id, name, email_id, phone_no, password_hash } = req.body;
 
@@ -241,6 +410,36 @@ app.post("/addLibrarian", async (req, res) => {
 });
 
 // --- 1️⃣1️⃣ UPDATE LIBRARIAN ---
+/**
+ * @openapi
+ * /librarians/{id}:
+ *   put:
+ *     summary: Update librarian
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email_id:
+ *                 type: string
+ *               phone_no:
+ *                 type: string
+ *               password_hash:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Librarian updated
+ */
 app.put("/librarians/:id", async (req, res) => {
   const { id } = req.params;
   const { name, email_id, phone_no, password_hash } = req.body;
@@ -269,6 +468,21 @@ app.put("/librarians/:id", async (req, res) => {
 });
 
 // --- 1️⃣2️⃣ DELETE LIBRARIAN ---
+/**
+ * @openapi
+ * /librarians/{id}:
+ *   delete:
+ *     summary: Delete librarian
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Librarian deleted
+ */
 app.delete("/librarians/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -292,6 +506,15 @@ app.delete("/librarians/:id", async (req, res) => {
 
 
 // Example using Express
+/**
+ * @openapi
+ * /borrowReports:
+ *   get:
+ *     summary: Get recent borrow reports
+ *     responses:
+ *       200:
+ *         description: Array of borrow report entries
+ */
 app.get("/borrowReports", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -317,6 +540,21 @@ app.get("/borrowReports", async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /student/{email}:
+ *   get:
+ *     summary: Get student by email
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Student object
+ */
 app.get("/student/:email", async (req, res) => {
   const { email } = req.params;
   try {

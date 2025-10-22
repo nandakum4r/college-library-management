@@ -29,6 +29,31 @@ function validatePassword(password) {
 }
 
 // --- SIGNUP ---
+/**
+ * @openapi
+ * /signup:
+ *   post:
+ *     summary: Sign up an existing record (student/librarian/admin)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [student, librarian, admin]
+ *     responses:
+ *       200:
+ *         description: Signup successful
+ */
 app.post("/signup", async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -70,6 +95,29 @@ app.post("/signup", async (req, res) => {
 
 // --- LOGIN ---
 // --- LOGIN ---
+/**
+ * @openapi
+ * /login:
+ *   post:
+ *     summary: Login with email, password and role
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [student, librarian, admin]
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
 app.post("/login", async (req, res) => {
   let { email, password, role } = req.body;
 

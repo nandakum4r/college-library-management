@@ -12,6 +12,15 @@ const pool = require("../db"); //.
 
 
 // --- GET all books with available copies ---
+/**
+ * @openapi
+ * /books:
+ *   get:
+ *     summary: List all books with available copies
+ *     responses:
+ *       200:
+ *         description: Array of books with available_copies
+ */
 app.get("/books", async (req, res) => {
   try {
     const query = `
@@ -37,6 +46,51 @@ app.get("/books", async (req, res) => {
 });
 
 // --- GET borrowed books for a student with fine calculation ---
+/**
+ * @openapi
+ * /mybooks/{email}:
+ *   get:
+ *     summary: Get borrowed books for a student
+ *     description: Returns borrow records for a student, with fine calculation per item and total fine.
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Student email (URL-encoded if needed)
+ *     responses:
+ *       200:
+ *         description: A list of borrowed books with fine details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 books:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       borrow_id:
+ *                         type: integer
+ *                       title:
+ *                         type: string
+ *                       author:
+ *                         type: string
+ *                       issue_date:
+ *                         type: string
+ *                         format: date-time
+ *                       due_date:
+ *                         type: string
+ *                         format: date-time
+ *                       status:
+ *                         type: string
+ *                       fine:
+ *                         type: integer
+ *                 totalFine:
+ *                   type: integer
+ */
 app.get("/mybooks/:email", async (req, res) => {
   const email = decodeURIComponent(req.params.email);
   try {
@@ -104,6 +158,26 @@ app.get("/mybooks/activecount/:email", async (req, res) => {
 
 
 // --- POST borrow request ---
+/**
+ * @openapi
+ * /borrow:
+ *   post:
+ *     summary: Create a borrow request for a student
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email_id:
+ *                 type: string
+ *               book_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Borrow request created
+ */
 app.post("/borrow", async (req, res) => {
   const { email_id, book_id } = req.body;
   if (!email_id || !book_id) return res.status(400).json({ message: "email_id and book_id required" });
@@ -158,6 +232,24 @@ app.post("/borrow", async (req, res) => {
 });
 
 // --- POST return a borrowed copy ---
+/**
+ * @openapi
+ * /return:
+ *   post:
+ *     summary: Return a borrowed copy
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               borrow_id:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Return processed
+ */
 app.post("/return", async (req, res) => {
   const { borrow_id } = req.body;
   if (!borrow_id) return res.status(400).json({ message: "borrow_id required" });
@@ -188,6 +280,26 @@ app.post("/return", async (req, res) => {
 });
 
 // --- POST renew a borrowed copy (accepts optional 'days') ---
+/**
+ * @openapi
+ * /renew:
+ *   post:
+ *     summary: Renew an issued borrow (optional days, default 14)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               borrow_id:
+ *                 type: integer
+ *               days:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Renew successful with newDueDate
+ */
 app.post('/renew', async (req, res) => {
   const { borrow_id, days } = req.body;
   if (!borrow_id) return res.status(400).json({ message: 'borrow_id required' });
