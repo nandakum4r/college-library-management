@@ -40,6 +40,7 @@ export default function MyBooks() {
   // Map status to CSS class
   const getStatusClass = (status, due_date) => {
     if (status === "RETURNED") return "status-returned";
+    if(status ==="RETURN_PENDING") return "status-return-pending";
     if (status === "EXPIRED") return "status-expired";
     if (status === "ISSUE_PENDING") return "status-issued"; // orange for pending
     if (status === "ISSUED") {
@@ -54,6 +55,7 @@ export default function MyBooks() {
   const getStatusText = (book) => {
     if (book.status === "RETURNED") return "Returned";
     if (book.status === "EXPIRED") return "Expired";
+    if (book.status === "RETURN_PENDING") return "Return Pending"
     if (book.status === "ISSUE_PENDING") return "Issue Pending"; // show text explicitly
     if (book.status === "ISSUED") {
       const today = new Date();
@@ -83,6 +85,10 @@ export default function MyBooks() {
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: #1f2937; color: white; }
         tr:hover { background: #f1f5f9; }
+        .status-return-pending { 
+  color: green; 
+  font-weight: bold; 
+}
         .status-returned { color: green; font-weight: bold; }
         .status-issued { color: orange; font-weight: bold; } /* used for ISSUE_PENDING or normal issued */
         .status-overdue { color: red; font-weight: bold; }

@@ -285,10 +285,6 @@ app.post("/return", async (req, res) => {
       [new Date(), borrow_id]
     );
 
-    await pool.query("UPDATE book_copy SET status='AVAILABLE' WHERE copy_id=$1", [
-      copy_id,
-    ]);
-
     res.json({ message: "Return processed" });
   } catch (err) {
     console.error(err);
@@ -367,6 +363,204 @@ app.post('/renew', async (req, res) => {
   }
 });
 
+// Fetch all borrow requests
+// Fetch all pending borrow requests
+app.get("/borrowRequests", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+  bb.borrow_id,
+  bb.reg_no,
+  s.name AS student_name,
+  bb.copy_id,
+  b.title AS book_title,
+  TO_CHAR(bb.issue_date, 'YYYY-MM-DD') AS issue_date,
+  TO_CHAR(bb.due_date, 'YYYY-MM-DD') AS due_date,
+  TO_CHAR(bb.return_date, 'YYYY-MM-DD') AS return_date,
+  bb.status,
+  bb.renew_count
+FROM book_borrow bb
+JOIN student s ON bb.reg_no = s.reg_no
+JOIN book_copy bc ON bb.copy_id = bc.copy_id
+JOIN book b ON bc.book_id = b.book_id
+WHERE bb.status = 'ISSUE_PENDING'
+ORDER BY bb.issue_date DESC;
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching borrow requests:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Approve or reject a borrow request
+// Approve or reject a borrow request with token verification
+app.put("/borrowRequests/:id", async (req, res) => {
+  const { id } = req.params;
+  const { action, token } = req.body; // now expects token for approval
+
+  if (!["approve", "reject"].includes(action)) {
+    return res.status(400).json({ message: "Invalid action" });
+  }
+
+  try {
+    if (action === "approve") {
+      if (!token) {
+        return res.status(400).json({ message: "Token required to approve" });
+      }
+
+      // Check token
+      const checkResult = await pool.query(
+        "SELECT token, status FROM book_borrow WHERE borrow_id=$1",
+        [id]
+      );
+
+      if (!checkResult.rows.length) {
+        return res.status(404).json({ message: "Borrow request not found" });
+      }
+
+      const { token: dbToken, status } = checkResult.rows[0];
+
+      if (status !== "ISSUE_PENDING") {
+        return res.status(400).json({ message: "Request already processed" });
+      }
+
+      if (dbToken !== token) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      // Token matches → approve
+      await pool.query(
+        "UPDATE book_borrow SET status='ISSUED' WHERE borrow_id=$1",
+        [id]
+      );
+
+      // Update book copy status
+      await pool.query(
+        "UPDATE book_copy SET status='NOT AVAILABLE' WHERE copy_id=(SELECT copy_id FROM book_borrow WHERE borrow_id=$1)",
+        [id]
+      );
+
+      return res.json({ message: "Borrow request approved successfully" });
+    } else {
+      // Reject
+      const result = await pool.query(
+        "UPDATE book_borrow SET status='REJECTED' WHERE borrow_id=$1 AND status='ISSUE_PENDING'",
+        [id]
+      );
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Borrow request not found or already processed" });
+      }
+
+      // Revert copy status to AVAILABLE
+      await pool.query(
+        "UPDATE book_copy SET status='AVAILABLE' WHERE copy_id=(SELECT copy_id FROM book_borrow WHERE borrow_id=$1)",
+        [id]
+      );
+
+      return res.json({ message: "Borrow request rejected successfully" });
+    }
+  } catch (err) {
+    console.error("❌ Error updating borrow request:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Fetch all pending return requests
+app.get("/returnRequests", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        bb.borrow_id,
+        bb.reg_no,
+        s.name AS student_name,
+        bb.copy_id,
+        b.title AS book_title,
+        TO_CHAR(bb.issue_date, 'YYYY-MM-DD') AS issue_date,
+        TO_CHAR(bb.due_date, 'YYYY-MM-DD') AS due_date,
+        TO_CHAR(bb.return_date, 'YYYY-MM-DD') AS return_date,
+        bb.status,
+        bb.renew_count
+      FROM book_borrow bb
+      JOIN student s ON bb.reg_no = s.reg_no
+      JOIN book_copy bc ON bb.copy_id = bc.copy_id
+      JOIN book b ON bc.book_id = b.book_id
+      WHERE bb.status = 'RETURN_PENDING'
+      ORDER BY bb.return_date DESC;
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching return requests:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Approve or reject a return request with token verification
+app.put("/returnRequests/:id", async (req, res) => {
+  const { id } = req.params;
+  const { action, token } = req.body; // expects token for approval
+
+  if (!["approve", "reject"].includes(action)) {
+    return res.status(400).json({ message: "Invalid action" });
+  }
+
+  try {
+    const checkResult = await pool.query(
+      "SELECT token, status, copy_id FROM book_borrow WHERE borrow_id=$1",
+      [id]
+    );
+
+    if (!checkResult.rows.length) {
+      return res.status(404).json({ message: "Return request not found" });
+    }
+
+    const { token: dbToken, status, copy_id } = checkResult.rows[0];
+
+    if (status !== "RETURN_PENDING") {
+      return res.status(400).json({ message: "Request already processed" });
+    }
+
+    if (action === "approve") {
+      if (!token || dbToken !== token) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      // Token matches → approve return
+      await pool.query(
+        "UPDATE book_borrow SET status='RETURNED' WHERE borrow_id=$1",
+        [id]
+      );
+
+      // Update book copy to AVAILABLE
+      await pool.query(
+        "UPDATE book_copy SET status='AVAILABLE' WHERE copy_id=$1",
+        [copy_id]
+      );
+
+      return res.json({ message: "Return request approved successfully" });
+    } else {
+      // Reject return → keep status RETURN_PENDING (or optionally revert to ISSUED)
+      await pool.query(
+        "UPDATE book_borrow SET status='ISSUED' WHERE borrow_id=$1",
+        [id]
+      );
+
+      await pool.query(
+        "UPDATE book_copy SET status='NOT AVAILABLE' WHERE copy_id=$1",
+        [copy_id]
+      );
+
+      return res.json({ message: "Return request rejected" });
+    }
+  } catch (err) {
+    console.error("❌ Error updating return request:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // -------------------------------------------
 // 📬 DAILY REMINDER SERVICE (3-month return reminder)
 // -------------------------------------------
@@ -400,7 +594,7 @@ const transporter = nodemailer.createTransport({
 const generateNotificationId = () => "N" + crypto.randomBytes(4).toString("hex").toUpperCase();
 
 // 🕘 Daily cron job: send reminders
-cron.schedule("0 9 * * *", async () => {
+cron.schedule("15 1 * * *", async () => {
   console.log("⏰ Running daily reminder job...");
 
   try {

@@ -59,7 +59,7 @@ export default function DueDates() {
       if (!res.ok) return alert(data.message || "Return failed");
       // optimistic: remove returned book from UI immediately
       setBorrows((prev) => prev.filter((item) => item.borrow_id !== borrow_id));
-      alert("Return successful");
+      alert("Return request successful");
       // refresh in background to ensure consistency
       fetchBorrows();
     } catch (err) {

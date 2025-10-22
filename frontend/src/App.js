@@ -22,6 +22,11 @@ import DueDates from "./pages/DueDates";
 import LibrarianDashboard from "./pages/LibrarianDashboard";
 import AddBook from "./pages/AddBook";
 import DeleteBook from "./pages/DeleteBook";
+
+import BorrowRequests from "./pages/BorrowRequests"; 
+import ReturnRequests from "./pages/ReturnRequests";
+import ManageBooks from "./pages/ManageBooks";
+
 function App() {
   return (
     <Router>
@@ -47,6 +52,13 @@ function App() {
 
         {/* Student Dashboard */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
+
+        {/* Librarian Borrow Requests */}
+        <Route path="/borrowRequests" element={<BorrowRequests />} />
+
+        <Route path="/return-requests" element={<ReturnRequests />} />
+
+         <Route path="/manage-books" element={<ManageBooks />} />
 
         {/* Other Pages */}
         <Route path="/borrow" element={<BorrowBooks />} />
