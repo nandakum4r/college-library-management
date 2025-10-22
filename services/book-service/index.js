@@ -8,8 +8,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const pool = require("../db"); //.
-
+const pool = require("../db"); // DB pool
 
 // --- GET all books with available copies ---
 /**
@@ -45,6 +44,7 @@ app.get("/books", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // --- GET borrowed books for a student with fine calculation ---
 /**
  * @openapi
@@ -91,15 +91,20 @@ app.get("/books", async (req, res) => {
  *                 totalFine:
  *                   type: integer
  */
+=======
+// --- GET borrowed books for a student with real-time fine calculation ---
+>>>>>>> origin/main
 app.get("/mybooks/:email", async (req, res) => {
   const email = decodeURIComponent(req.params.email);
   try {
-    // 1️⃣ Get student's reg_no
-    const studentResult = await pool.query("SELECT reg_no FROM student WHERE email_id=$1", [email]);
-    if (!studentResult.rows.length) return res.status(404).json({ message: "Student not found" });
+    const studentResult = await pool.query(
+      "SELECT reg_no FROM student WHERE email_id=$1",
+      [email]
+    );
+    if (!studentResult.rows.length)
+      return res.status(404).json({ message: "Student not found" });
     const reg_no = studentResult.rows[0].reg_no;
 
-    // 2️⃣ Fetch borrow records
     const borrowQuery = `
       SELECT 
         bb.borrow_id,
@@ -116,18 +121,16 @@ app.get("/mybooks/:email", async (req, res) => {
     `;
     const borrowResult = await pool.query(borrowQuery, [reg_no]);
 
-    // 3️⃣ Calculate fines (₹1 per overdue day), without changing status
     const today = new Date();
-    let totalFine = 0;
     const booksWithFine = borrowResult.rows.map((book) => {
       const dueDate = new Date(book.due_date);
       let fine = 0;
       if ((book.status === "ISSUED" || book.status === "ISSUE_PENDING") && today > dueDate) {
         fine = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
       }
-      totalFine += fine;
       return { ...book, fine };
     });
+    const totalFine = booksWithFine.reduce((acc, b) => acc + b.fine, 0);
 
     res.json({ books: booksWithFine, totalFine });
   } catch (err) {
@@ -136,12 +139,16 @@ app.get("/mybooks/:email", async (req, res) => {
   }
 });
 
-// --- GET active borrow count for a student (ISSUED + ISSUE_PENDING) ---
+// --- GET active borrow count for a student ---
 app.get("/mybooks/activecount/:email", async (req, res) => {
   const email = decodeURIComponent(req.params.email);
   try {
-    const studentResult = await pool.query("SELECT reg_no FROM student WHERE email_id=$1", [email]);
-    if (!studentResult.rows.length) return res.status(404).json({ message: "Student not found" });
+    const studentResult = await pool.query(
+      "SELECT reg_no FROM student WHERE email_id=$1",
+      [email]
+    );
+    if (!studentResult.rows.length)
+      return res.status(404).json({ message: "Student not found" });
     const reg_no = studentResult.rows[0].reg_no;
 
     const countResult = await pool.query(
@@ -155,7 +162,6 @@ app.get("/mybooks/activecount/:email", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // --- POST borrow request ---
 /**
@@ -180,49 +186,59 @@ app.get("/mybooks/activecount/:email", async (req, res) => {
  */
 app.post("/borrow", async (req, res) => {
   const { email_id, book_id } = req.body;
-  if (!email_id || !book_id) return res.status(400).json({ message: "email_id and book_id required" });
+  if (!email_id || !book_id)
+    return res.status(400).json({ message: "email_id and book_id required" });
 
   try {
-    // 1️⃣ Get student's reg_no
-    const studentResult = await pool.query("SELECT reg_no FROM student WHERE email_id=$1", [email_id]);
-    if (!studentResult.rows.length) return res.status(404).json({ message: "Student not found" });
+    const studentResult = await pool.query(
+      "SELECT reg_no FROM student WHERE email_id=$1",
+      [email_id]
+    );
+    if (!studentResult.rows.length)
+      return res.status(404).json({ message: "Student not found" });
     const reg_no = studentResult.rows[0].reg_no;
 
-    // 2️⃣ Check borrow limit
     const activeCountResult = await pool.query(
       "SELECT COUNT(*) FROM book_borrow WHERE reg_no=$1 AND status IN ('ISSUED','ISSUE_PENDING')",
       [reg_no]
     );
     const activeCount = parseInt(activeCountResult.rows[0].count, 10);
-    if (activeCount >= 4) return res.status(400).json({ message: "Borrow limit reached (4 books max)" });
+    if (activeCount >= 4)
+      return res
+        .status(400)
+        .json({ message: "Borrow limit reached (4 books max)" });
 
-    // 3️⃣ Find available copy
     const copyResult = await pool.query(
       "SELECT copy_id FROM book_copy WHERE book_id=$1 AND status='AVAILABLE' LIMIT 1",
       [book_id]
     );
-    if (!copyResult.rows.length) return res.status(400).json({ message: "No available copies" });
+    if (!copyResult.rows.length)
+      return res.status(400).json({ message: "No available copies" });
     const copy_id = copyResult.rows[0].copy_id;
 
-    // 4️⃣ Generate token
     const token = crypto.randomBytes(4).toString("hex");
 
-    // 5️⃣ Issue and due dates
     const issue_date = new Date();
     const due_date = new Date();
     due_date.setDate(issue_date.getDate() + 14);
 
-    // 6️⃣ Insert borrow request as ISSUE_PENDING
     const insertQuery = `
       INSERT INTO book_borrow
       (reg_no, copy_id, issue_date, due_date, status, renew_count, token)
       VALUES ($1,$2,$3,$4,'ISSUE_PENDING',0,$5)
       RETURNING borrow_id, token, copy_id, issue_date, due_date, status
     `;
-    const borrowResult = await pool.query(insertQuery, [reg_no, copy_id, issue_date, due_date, token]);
+    const borrowResult = await pool.query(insertQuery, [
+      reg_no,
+      copy_id,
+      issue_date,
+      due_date,
+      token,
+    ]);
 
-    // 7️⃣ Temporarily mark copy as ISSUE_PENDING
-    await pool.query("UPDATE book_copy SET status='ISSUE_PENDING' WHERE copy_id=$1", [copy_id]);
+    await pool.query("UPDATE book_copy SET status='ISSUE_PENDING' WHERE copy_id=$1", [
+      copy_id,
+    ]);
 
     res.json({ message: "Borrow request created", ...borrowResult.rows[0] });
   } catch (err) {
@@ -255,30 +271,36 @@ app.post("/return", async (req, res) => {
   if (!borrow_id) return res.status(400).json({ message: "borrow_id required" });
 
   try {
-    // 1) Find the borrow record
-    const borrowResult = await pool.query("SELECT copy_id, status FROM book_borrow WHERE borrow_id=$1", [borrow_id]);
-    if (!borrowResult.rows.length) return res.status(404).json({ message: "Borrow record not found" });
+    const borrowResult = await pool.query(
+      "SELECT copy_id, status FROM book_borrow WHERE borrow_id=$1",
+      [borrow_id]
+    );
+    if (!borrowResult.rows.length)
+      return res.status(404).json({ message: "Borrow record not found" });
 
     const { copy_id, status } = borrowResult.rows[0];
 
-    // Only allow return if currently issued or pending
-    if (status !== 'ISSUED' && status !== 'ISSUE_PENDING') {
-      return res.status(400).json({ message: 'Cannot return - not in issued state' });
+    if (status !== "ISSUED" && status !== "ISSUE_PENDING") {
+      return res.status(400).json({ message: "Cannot return - not in issued state" });
     }
 
-    // 2) Update borrow record: set status to RETURNED and set return_date
-    await pool.query("UPDATE book_borrow SET status='RETURNED', return_date=$1 WHERE borrow_id=$2", [new Date(), borrow_id]);
+    await pool.query(
+      "UPDATE book_borrow SET status='RETURN_PENDING', return_date=$1 WHERE borrow_id=$2",
+      [new Date(), borrow_id]
+    );
 
-    // 3) Mark copy as AVAILABLE
-    await pool.query("UPDATE book_copy SET status='AVAILABLE' WHERE copy_id=$1", [copy_id]);
+    await pool.query("UPDATE book_copy SET status='AVAILABLE' WHERE copy_id=$1", [
+      copy_id,
+    ]);
 
-    res.json({ message: 'Return processed' });
+    res.json({ message: "Return processed" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
+<<<<<<< HEAD
 // --- POST renew a borrowed copy (accepts optional 'days') ---
 /**
  * @openapi
@@ -301,39 +323,154 @@ app.post("/return", async (req, res) => {
  *         description: Renew successful with newDueDate
  */
 app.post('/renew', async (req, res) => {
+=======
+// --- POST renew a borrowed copy ---
+app.post("/renew", async (req, res) => {
+>>>>>>> origin/main
   const { borrow_id, days } = req.body;
-  if (!borrow_id) return res.status(400).json({ message: 'borrow_id required' });
+  if (!borrow_id) return res.status(400).json({ message: "borrow_id required" });
 
-  // validate days if provided
-  let addDays = 14; // default
-  if (typeof days !== 'undefined') {
+  let addDays = 14;
+  if (typeof days !== "undefined") {
     const n = parseInt(days, 10);
-    if (isNaN(n) || n <= 0) return res.status(400).json({ message: 'Invalid days value' });
-    if (n > 60) return res.status(400).json({ message: 'Requested days too large (max 60)' });
+    if (isNaN(n) || n <= 0)
+      return res.status(400).json({ message: "Invalid days value" });
+    if (n > 60)
+      return res
+        .status(400)
+        .json({ message: "Requested days too large (max 60)" });
     addDays = n;
   }
 
   try {
-    // fetch current record
-    const result = await pool.query('SELECT due_date, renew_count, status FROM book_borrow WHERE borrow_id=$1', [borrow_id]);
-    if (!result.rows.length) return res.status(404).json({ message: 'Borrow record not found' });
+    const result = await pool.query(
+      "SELECT due_date, renew_count, status FROM book_borrow WHERE borrow_id=$1",
+      [borrow_id]
+    );
+    if (!result.rows.length)
+      return res.status(404).json({ message: "Borrow record not found" });
 
     const { due_date, renew_count, status } = result.rows[0];
 
-    if (status !== 'ISSUED') return res.status(400).json({ message: 'Only issued books can be renewed' });
+    if (status !== "ISSUED")
+      return res.status(400).json({ message: "Only issued books can be renewed" });
 
     const maxRenew = 2;
-    if (renew_count >= maxRenew) return res.status(400).json({ message: 'Renew limit reached' });
+    if (renew_count >= maxRenew)
+      return res.status(400).json({ message: "Renew limit reached" });
 
     const newDue = new Date(due_date);
     newDue.setDate(newDue.getDate() + addDays);
 
-    await pool.query('UPDATE book_borrow SET due_date=$1, renew_count=renew_count+1 WHERE borrow_id=$2', [newDue, borrow_id]);
-    
-    res.json({ message: 'Renewed successfully', newDueDate: newDue });
+    await pool.query(
+  `UPDATE book_borrow 
+   SET due_date=$1, renew_count=renew_count+1, reminder_sent=FALSE 
+   WHERE borrow_id=$2`,
+  [newDue, borrow_id]
+);
+
+    res.json({ message: "Renewed successfully", newDueDate: newDue });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// -------------------------------------------
+// 📬 DAILY REMINDER SERVICE (3-month return reminder)
+// -------------------------------------------
+
+const nodemailer = require("nodemailer");
+const cron = require("node-cron");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "duplicate995@gmail.com",
+    pass: "aucl vtyw nnyi mbkl",
+  },
+});
+
+// 🔁 Ensure reminder columns exist
+(async () => {
+  try {
+    await pool.query(`
+      ALTER TABLE book_borrow ADD COLUMN IF NOT EXISTS reminder_sent BOOLEAN DEFAULT FALSE;
+    `);
+    await pool.query(`
+      ALTER TABLE book_borrow ADD COLUMN IF NOT EXISTS return_reminder_sent BOOLEAN DEFAULT FALSE;
+    `);
+    console.log("✅ Reminder tracking columns ensured.");
+  } catch (err) {
+    console.error("⚠️ Could not verify reminder columns:", err);
+  }
+})();
+
+const generateNotificationId = () => "N" + crypto.randomBytes(4).toString("hex").toUpperCase();
+
+// 🕘 Daily cron job: send reminders
+cron.schedule("0 9 * * *", async () => {
+  console.log("⏰ Running daily reminder job...");
+
+  try {
+    // --- 1️⃣ Renewal reminders ---
+    const overdue = await pool.query(`
+      SELECT s.name, s.email_id, s.reg_no, b.title, bb.due_date, bb.borrow_id
+      FROM book_borrow bb
+      JOIN student s ON bb.reg_no = s.reg_no
+      JOIN book_copy bc ON bb.copy_id = bc.copy_id
+      JOIN book b ON bc.book_id = b.book_id
+      WHERE bb.status='ISSUED' AND bb.due_date < CURRENT_DATE
+        AND (bb.reminder_sent IS FALSE OR bb.reminder_sent IS NULL)
+    `);
+
+    for (const row of overdue.rows) {
+      const { name, email_id, reg_no, title, due_date, borrow_id } = row;
+      const mail = {
+        from: "duplicate995@gmail.com",
+        to: email_id,
+        subject: `Reminder: "${title}" is overdue`,
+        text: `Dear ${name},\n\nYour borrowed book "${title}" was due on ${new Date(due_date).toLocaleDateString()}.\nPlease renew or return it soon.\n\n📚 - College Library`,
+      };
+      try {
+        await transporter.sendMail(mail);
+        await pool.query("UPDATE book_borrow SET reminder_sent=TRUE WHERE borrow_id=$1", [borrow_id]);
+        const notifId = generateNotificationId();
+        await pool.query("INSERT INTO notification (notification_id, reg_no, borrow_id) VALUES ($1,$2,$3)", [notifId, reg_no, borrow_id]);
+      } catch (err) { console.error("❌ Email send failed:", err); }
+    }
+
+    // --- 2️⃣ Return reminders (3 months from issue date) ---
+    const threeMonths = await pool.query(`
+      SELECT s.name, s.email_id, s.reg_no, b.title, bb.issue_date, bb.borrow_id
+      FROM book_borrow bb
+      JOIN student s ON bb.reg_no = s.reg_no
+      JOIN book_copy bc ON bb.copy_id = bc.copy_id
+      JOIN book b ON bc.book_id = b.book_id
+      WHERE bb.status='ISSUED' 
+        AND CURRENT_DATE >= (bb.issue_date + INTERVAL '3 months')
+        AND (bb.return_reminder_sent IS FALSE OR bb.return_reminder_sent IS NULL)
+    `);
+
+    for (const row of threeMonths.rows) {
+      const { name, email_id, reg_no, title, issue_date, borrow_id } = row;
+      const mail = {
+        from: "duplicate995@gmail.com",
+        to: email_id,
+        subject: `Return Reminder: "${title}" borrowed 3 months ago`,
+        text: `Dear ${name},\n\nYou borrowed "${title}" on ${new Date(issue_date).toLocaleDateString()} — 3 months ago.\nPlease return it soon.\n\n📚 - College Library`,
+      };
+      try {
+        await transporter.sendMail(mail);
+        await pool.query("UPDATE book_borrow SET return_reminder_sent=TRUE WHERE borrow_id=$1", [borrow_id]);
+        const notifId = generateNotificationId();
+        await pool.query("INSERT INTO notification (notification_id, reg_no, borrow_id) VALUES ($1,$2,$3)", [notifId, reg_no, borrow_id]);
+        console.log(`✅ 3-month return reminder sent to ${email_id}`);
+      } catch (err) { console.error("❌ 3-month return reminder failed:", err); }
+    }
+
+  } catch (err) {
+    console.error("🔥 Daily reminder job failed:", err);
   }
 });
 

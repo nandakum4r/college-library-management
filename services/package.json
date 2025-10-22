@@ -7,14 +7,11 @@
     "start:user": "node user-service/index.js",
     "start:auth": "node auth-service/index.js",
     "start:book": "node book-service/index.js",
-
     "test:auth": "cd auth-service && cross-env NODE_ENV=test jest auth.test.js --detectOpenHandles",
     "test:user": "cd user-service && cross-env NODE_ENV=test jest user.test.js --detectOpenHandles",
     "test:book": "cd book-service && cross-env NODE_ENV=test jest book.test.js --detectOpenHandles",
-
     "test:all": "npm run test:auth && npm run test:user && npm run test:book",
-    "start:all": "concurrently \"node auth-service/index.js\" \"node user-service/index.js\" \"node book-service/index.js\""  
-
+    "start:all": "concurrently \"node auth-service/index.js\" \"node user-service/index.js\" \"node book-service/index.js\""
   },
   "jest": {
     "testEnvironment": "node",
@@ -33,6 +30,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.9",
     "pg": "^8.16.3"
   },
   "devDependencies": {
