@@ -117,10 +117,16 @@ npm start
 
 ## Project Maintainers & Collaborators
 
-| [Nanda Kumar](https://github.com/nandakum4r)              | [Laila R](https://github.com/lailar2004)              |[Hirthik Raj A](https://github.com/Hirthikraj-A)              |[Jayaprakash](https://github.com/Jayaprakash-18)              | [Suresh Appu](https://github.com/Sureshappu152)              | [Shanmugharini](https://github.com/Shanmugharini)              | [VKMir](https://github.com/VKMir)              | [Sreenithi](https://github.com/sreenithi-developer)              |
-| -------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
-| ![Nandakumar](https://github.com/nandakum4r.png?size=20) | ![Laila R](https://github.com/lailar2004.png?size=20) | ![Hirthik Raj A](https://github.com/Hirthikraj-A.png?size=20)| ![Jayaprakash](https://github.com/Jayaprakash-18.png?size=20) | ![Suresh Appu](https://github.com/Sureshappu152.png?size=20) | ![Shanmugharini](https://github.com/Shanmugharini.png?size=20) | ![VKMir](https://github.com/VKMir.png?size=20) |![Sreenithi](https://github.com/sreenithi-developer.png?size=20)              |
-* Clicking on the avatars will take you to the respective GitHub profiles.
+| [Nanda Kumar](https://github.com/nandakum4r) | [Laila R](https://github.com/lailar2004) | [Hirthik Raj A](https://github.com/Hirthikraj-A) | [Jayaprakash](https://github.com/Jayaprakash-18) |
+|----------------------------------------------|------------------------------------------|--------------------------------------------------|--------------------------------------------------|
+| <img src="https://github.com/nandakum4r.png?size=60" width="40"/> | <img src="https://github.com/lailar2004.png?size=60" width="40"/> | <img src="https://github.com/Hirthikraj-A.png?size=60" width="40"/> | <img src="https://github.com/Jayaprakash-18.png?size=60" width="40"/> |
+
+| [Suresh Appu](https://github.com/Sureshappu152) | [Shanmugharini](https://github.com/Shanmugharini) | [VKMir](https://github.com/VKMir) | [Sreenithi](https://github.com/sreenithi-developer) |
+|-------------------------------------------------|---------------------------------------------------|----------------------------------|---------------------------------------------------|
+| <img src="https://github.com/Sureshappu152.png?size=60" width="40"/> | <img src="https://github.com/Shanmugharini.png?size=60" width="40"/> | <img src="https://github.com/VKMir.png?size=60" width="40"/> | <img src="https://github.com/sreenithi-developer.png?size=60" width="40"/> |
+
+> 🔗 Clicking an avatar will take you to the respective GitHub profile.
+
 
 ---
 
